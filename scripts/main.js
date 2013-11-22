@@ -11,6 +11,6 @@ require([
   // coverExample.doCoverForAlbum();
   // buttonExample.doShareButtonForArtist();
   // buttonExample.doPlayButtonForAlbum();
-  playlistExample.doPlaylistForAlbum();
+  // playlistExample.doPlaylistForAlbum();
 
 });
