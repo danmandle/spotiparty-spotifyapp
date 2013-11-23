@@ -62,7 +62,7 @@ require([
 	}, 2000)}; // timeout needs to be greater than the less than above
 
 	window.stopChecking = function(){
-		clearInterval(songPosition);
+		clearInterval(songPositionChecker);
 	}
 
 	function prepNextSong(){
@@ -153,26 +153,23 @@ require([
 		return 'spotify' + url.replace('http://open.spotify.com','').replace(/\//gi,':');
 	}
 
-	models.player.addEventListener('change:playing', function(p) {
+	// models.player.addEventListener('change:playing', function(p) {
+	//   console.log((p.target.playing?'Started':'Stopped') + ' playing');
+	  
+	//   (p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
+
+	// });
+
+	models.player.addEventListener('change:', function(p) {
 	  console.log((p.target.playing?'Started':'Stopped') + ' playing');
 	  
-	  (p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
-	/*=====
+	  console.log('something changed');
+	  
+	  // (p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
 
-		There's an edge case here where if you start playing a song with less than 5 secs left, it won't trigger prepNextSong
-
-	 =====*/  
-	// if((p.target.duration - p.target.position) > 9000){
-	// 	(p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
-	// }
-	// else{
-	// 	prepNextSong();
-	// }
 	});
-
 
 	// we should initialize some values
 	trackChange();
 	updateLocalPlaylist();
-	window.thePlayer = models.player;
 });
