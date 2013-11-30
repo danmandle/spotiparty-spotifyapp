@@ -4,17 +4,27 @@ require([
   '$views/list#List'
 ], function(models, Image, List) {
   'use strict';
-  
+  	
 	var imageURI = null;
 
 	window.startTheParty = function(){
 		updateLocalPlaylist();
-		models.player.playContext(models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty')); // There's probably a more right way to do this
+		models.player.stop().done(function(p){
+			models.player.playContext(models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty')); // There's probably a more right way to do this
+		});
 	}
 
+	models.player.addEventListener('change:playing', function(p) {
+	  console.log((p.target.playing?'Started':'Stopped') + ' playing');
+	  
+	  (p.target.playing)? window.songPosition() : stopChecking();
+
+	});
+	
 	// Gets fired when a track ends or is skipped
 	models.player.addEventListener('change:track', function(p) {
-	  trackChange();
+		console.log('song changed');
+		trackChange();
 	});
 	function trackChange(){
 		models.player.load('track').done(function(p) {
@@ -25,7 +35,9 @@ require([
 		    
 		    updateCoverArt(track);
 		    updateTrackTitle(track);
-		 });
+		}).fail(function(error){
+			console.log(error);
+		});
 		
 	};
 
@@ -42,33 +54,31 @@ require([
 		$('h1#current-track').text(track.artists[0].name + ' - ' + track.name);
 	}
 
-	window.songPosition = function(){window.songPositionChecker = setInterval(function(){
-		models.player.load('position').done(function(p) {
-		  	
-		  	// var percentComplete = Math.round((p.position / p.duration)*100);
-		  	
-		  	var percentComplete =(p.position / p.duration);
-			console.log('position: '+p.position);
-		  	console.log('percentComplete: '+percentComplete);
-		  	
-		  	// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
-		  		  	
-		  	if((p.duration - p.position) < 30000){ // if there's less that 9 seconds left in the song
-		  		prepNextSong();
-		  	}
-		  	
-		  	!p.playing ? clearInterval(songPosition) : null;
-		});
+	window.songPosition = function(){
+		window.songPositionChecker = setInterval(function(){
+			models.player.load('position', 'playing').done(function(p) {
+			  	
+			  	// var percentComplete = Math.round((p.position / p.duration)*100);
+			  	
+			  	var percentComplete = (p.position / p.duration);
+				console.log('seconds left: '+ (p.duration - p.position));
+			  	console.log('percentComplete: '+percentComplete);
+			  	
+			  	// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
+			  		  	
+			  	if((p.duration - p.position) < 30000){ // if there's less that 30 seconds left in the song
+			  		updateLocalPlaylist();
+				  	stopChecking();
+			  	}
+			  	
+			  	!p.playing ? stopChecking() : null;
+			}).fail(function(error){
+				console.log(error);
+			});
 	}, 2000)}; // timeout needs to be greater than the less than above
 
 	window.stopChecking = function(){
-		clearInterval(songPositionChecker);
-	}
-
-	function prepNextSong(){
-		console.log('Song ending, grab next song');
-		
-		updateLocalPlaylist();
+		clearInterval(window.songPositionChecker);
 	}
 
 	function updateLocalPlaylist(){
@@ -76,7 +86,7 @@ require([
 		models.Playlist.createTemporary('Spotiparty').done(function(p){
 			console.log("playlist "+ p.name +" created");
 			p.load("tracks").done(function(spotipartyPlaylist) {
-	         window.spotipartyPlaylist = spotipartyPlaylist;
+				window.spotipartyPlaylist = spotipartyPlaylist;
 		         
 		         spotipartyPlaylist.tracks.clear();
 		         updatePlaylistFromWeb(spotipartyPlaylist);
@@ -87,6 +97,8 @@ require([
                      list.init();
          	    }, this), 10);
 		    });
+		}).fail(function(error){
+			console.log(error);
 		});
 
 	}
@@ -138,37 +150,13 @@ require([
 	    }, this), 0);
 	});
 	
-	// $("#backupPlaylist").change(function(){
-	// 	console.log('changed');
-		
-	// 	if($('#backupPlaylist').val() != ''){
-	// 		console.log('new playlist was dragged');
-	// 	}
-	// });
-
 	window.urlToUri = function(url){
 		// convert URL to URI
 		//// http://open.spotify.com/user/danmandle/playlist/5ZwcCib9Fp38CygXSTi9Fw
 		//// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
 		return 'spotify' + url.replace('http://open.spotify.com','').replace(/\//gi,':');
 	}
-
-	// models.player.addEventListener('change:playing', function(p) {
-	//   console.log((p.target.playing?'Started':'Stopped') + ' playing');
-	  
-	//   (p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
-
-	// });
-
-	models.player.addEventListener('change:', function(p) {
-	  console.log((p.target.playing?'Started':'Stopped') + ' playing');
-	  
-	  console.log('something changed');
-	  
-	  // (p.target.playing)? window.songPosition() : clearInterval(window.songPositionChecker);
-
-	});
-
+	
 	// we should initialize some values
 	trackChange();
 	updateLocalPlaylist();
