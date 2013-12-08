@@ -27,5 +27,15 @@
     "Web",
     "Desktop"
   ],
-  "VendorIdentifier": "co.spotiparty"
+  "VendorIdentifier": "co.spotiparty",
+  "DefaultTabs": [
+    {
+        "arguments": "index.html",
+        "title":  { "en": "Playlist" }
+    },
+    {
+        "arguments": "settings.html",
+        "title": { "en": "Settings" }
+    }
+]
 }

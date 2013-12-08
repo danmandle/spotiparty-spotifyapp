@@ -14,14 +14,17 @@
     <script src="scripts/libraries/jquery.min.js"></script>
   </head>
   <body>
-    <h1 id='current-track'></h1>
-    <div id="albumCoverContainer"></div>
-    <div id="buttonContainer"></div>
-    <button onClick='window.startTheParty()'>Start the Party!</button>
-    <input id='backupPlaylist' placeholder='Drag a backup playlist here' style="width:200px;"/>
-    <div id="playlistContainer"></div>
+    <div id="partyContainer">
+        <form id="createPartyForm">
+        <input type="text" id="partyName">
+        <input type="text" id="user">
+        <input type="submit" value="Create a Party">
+        </form>
+    </div>
+    <script src="scripts/socket.io.js"></script>
+    <script src="scripts/sails.io.js"></script>
     <script src="scripts/tabs.js"></script>
-    <script src="scripts/main.js"></script>
+    <script src="scripts/party-config.js"></script>
 
   </body>
 </html>
