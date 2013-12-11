@@ -1,6 +1,6 @@
 {
 	"BundleType": "Application",
-	"BundleIdentifier": "kitchensink",
+	"BundleIdentifier": "spotiparty",
 	"BundleVersion": "0.1b",
 	"AcceptedLinkTypes":[
 		"album",

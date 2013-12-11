@@ -138,6 +138,16 @@ function updatePlaylistFromWeb(localPlaylist) {
 	}
 }
 
+window.songPosition = function() {
+	window.songPositionChecker = setInterval(function() {
+		// get current position
+		console.log(player.position);
+		// get length of current song
+		console.log(player.track.duration);
+	}, 2000);
+};
+window.songPosition();
+
 function nowPlaying() {
 
 	// This will be null if nothing is playing.
