@@ -1,7 +1,7 @@
 {
 	"BundleType": "Application",
 	"BundleIdentifier": "spotiparty",
-	"BundleVersion": "0.1b",
+	"BundleVersion": "0.1",
 	"AcceptedLinkTypes":[
 		"album",
 		"artist",
