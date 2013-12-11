@@ -14,6 +14,11 @@ var sp = getSpotifyApi(1),
 	application = models.application,
 	playerImage = new views.Player();
 
+// set local storage for backup playlist
+if(localStorage.backupPlaylist == undefined){
+    localStorage.backupPlaylist = "spotify:user:billboard.com:playlist:6UeSakyzhiEt4NB3UAd6NQ"; // billboard hot 100
+}
+
 // Handle URI arguments
 application.observe(models.EVENT.ARGUMENTSCHANGED, handleArgs);
 	

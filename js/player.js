@@ -9,7 +9,6 @@ $(function(){
 			$("#play-history").append('<div>Track changed to: '+track.name+' by '+track.album.artist.name+'</div>');
 		}
 		nowPlaying();
-		
 	}); 
 	
 	$("#commands a").click(function(e){
@@ -87,13 +86,50 @@ $(function(){
 				break;
 		}
 	});
+
+
 	
+	//////////////
+	// settings //
+	//////////////
+
+	// clear dragged playlist text
+	$('#backupPlaylist').bind('dragenter', function() {
+		console.log('dragged');
+		$('#backupPlaylist').val('');
+	});
+
+	$('#backupPlaylist').bind('change', function() {
+		console.log('The changed conent: ' + $('#backupPlaylist').val());
+	});
+
+	$('#backupPlaylist').bind('drop', function() {
+		setTimeout($.proxy(function() {
+			// have to set the timeout for, well, unknown reasons, but the value of the field wasn't populating
+			var playlistURI = urlToUri($('#backupPlaylist').val());
+			localStorage.backupPlaylist = playlistURI;
+			console.log(playlistURI);
+
+			// models.Playlist.fromURI(playlistURI).load('name').done(function(playlist) {
+			// 	$('#backupPlaylist').val(playlist.name);
+			// });
+		}, this), 0);
+	});
+
+
 });
 
 function clearPlaylist(playlist) {
 	while (playlist.data.length > 0) {
 		playlist.data.remove(0);
 	}
+}
+
+function urlToUri(url) {
+	// convert URL to URI
+	//// http://open.spotify.com/user/danmandle/playlist/5ZwcCib9Fp38CygXSTi9Fw
+	//// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
+	return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 }
 
 function updateLocalPlaylist() {
