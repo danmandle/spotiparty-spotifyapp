@@ -1,26 +1,31 @@
 {
 	"BundleType": "Application",
 	"BundleIdentifier": "spotiparty",
+  "AppName": {
+    "en": "Spotiparty"
+  },
 	"BundleVersion": "0.1",
-	"AcceptedLinkTypes":[
-		"album",
-		"artist",
-		"track",
-		"playlist",
-		"user"
-	],
-	"AppIcon": {
-		"18x18": "icon.png"
-	},
-	"AppName": {
-		"en": "Kitchen Sink"
-	},
-	"AppDescription": {
-		"en": "Spotify Kitchen Sink is a demo application for the Spotify Apps API."
-	},
+  "AppDescription": {
+    "en": "The Spotify app for Parties!"
+  },
+  "AppIcon": {
+    "18x18": "images/logo/spotiparty_18.png",
+    "36x18": "images/logo/spotiparty_18.png",
+    "32x32": "images/logo/spotiparty_32.png",
+    "64x64": "images/logo/spotiparty_64.png",
+    "128x128": "images/logo/spotiparty_128.png",
+    "300x300": "images/logo/spotiparty_300.png"
+  },
 	"SupportedLanguages": [
 		"en"
 	],
+  "AcceptedLinkTypes":[
+    "album",
+    "artist",
+    "track",
+    "playlist",
+    "user"
+  ],
 	"DefaultTabs": [
 		{
 			"arguments": "player",
@@ -51,6 +56,9 @@
 		"https://*",
 		"http://*"
 	],
+  "SupportedDeviceClasses": [
+    "Desktop"
+  ],
 	"RequiredInterface": "1",
-	"VendorIdentifier": "com.kitchensink"
+	"VendorIdentifier": "co.spotiparty"
 }
