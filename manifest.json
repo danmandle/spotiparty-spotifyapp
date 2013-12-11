@@ -39,7 +39,13 @@
 			"title": {
 				"en": "Search"
 			}
-        }
+    },
+		{
+			"arguments": "settings",
+			"title": {
+				"en": "Settings"
+			}
+    }
 	],
 	"RequiredPermissions": [
 		"https://*",
