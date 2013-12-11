@@ -1,5 +1,3 @@
-console.log('cover loaded');
-
 require([
 	'$api/models',
 	'$views/image#Image',
@@ -8,21 +6,30 @@ require([
 	'use strict';
 
 //move to playlist-control
-	function updateLocalPlaylist() {
-
+	function updateLocalPlaylist(callback) {
+		// console.log('The callback: ', callback);
+		
 		models.Playlist.createTemporary('Spotiparty').done(function(p) {
 			console.log("playlist " + p.name + " created");
 			p.load("tracks").done(function(spotipartyPlaylist) {
 				window.spotipartyPlaylist = spotipartyPlaylist;
-
-				spotipartyPlaylist.tracks.clear();
-				updatePlaylistFromWeb(spotipartyPlaylist);
+				
+				
+				models.player.load('track').done(function(p) {
+					if(p.track != null){
+						// spotipartyPlaylist.tracks.trim(p.track);
+						spotipartyPlaylist.tracks.clear();
+						// console.log(spotipartyPlaylist.tracks.toArray());
+					}
+					updatePlaylistFromWeb(spotipartyPlaylist);
+				});
 
 				setTimeout($.proxy(function() {
 					var list = List.forPlaylist(p); // add options later, like height and number of items before scroll
 					$('#playlistContainer').html(list.node);
 					list.init();
 				}, this), 10);
+				callback ? callback() : undefined;
 			});
 		}).fail(function(error) {
 			console.log(error);
@@ -30,29 +37,52 @@ require([
 
 	}
 
+window.theSongs = {
+			'songs': [
+				'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
+				'spotify:track:3PJikMV2xGNCooQttQrAw5',
+				'spotify:track:30g7tH1rfMratchnaLfgqJ',
+				'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
+				'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
+				'spotify:track:2bD1AW4yqiCurGCva6r88a',
+				'spotify:track:1x5MjCffpcdHLf65eR9r3T',
+				'spotify:track:5KQrOv9nFVnM465CVGriW9',
+				'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
+				'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
+				'spotify:track:0GO8y8jQk1PkHzS31d699N',
+				'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
+				'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
+			]
+		};
+
 	function updatePlaylistFromWeb(localPlaylist) {
 		// AJAX call would go here...
+		
+		// var window.theSongs = {'songs':[]};
 
-		var data = {
-			'songs': ['spotify:track:3PJikMV2xGNCooQttQrAw5', 'spotify:track:30g7tH1rfMratchnaLfgqJ', 'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ', 'spotify:track:5yc59J3MR3tVDPTOgwgRI5', 'spotify:track:2bD1AW4yqiCurGCva6r88a']
-		};
-		// var data = {'songs':[]};
+		if (window.theSongs.songs.length > 0) {
 
-		if (data.songs.length > 0) {
+			// localPlaylist.tracks.insert(0, window.theSongs.songs); // that 0 might not be right
 
-			// localPlaylist.tracks.insert(0, data.songs); // that 0 might not be right
-
-			$.each(data.songs, function(index, value) {
+			$.each(window.theSongs.songs, function(index, value) {
 				localPlaylist.tracks.add(models.Track.fromURI(value));
 
 				console.log("added track uri " + value);
 			});
+			///// This is to remove a song each time one is played
+			window.theSongs.songs.shift();
 		} else {
 			console.log('No songs in the queue');
 		}
 	}
 
 //move to view
+	if(localStorage.backupPlaylist != undefined){	    
+	    models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
+	    	$('#backupPlaylist').val(playlist.name);
+	    });
+	}
+	
 	var imageURI = null;
 
 	$('#backupPlaylist').bind('dragenter', function() {
@@ -101,13 +131,18 @@ require([
 
 	function trackChange() {
 		models.player.load('track').done(function(p) {
-
-			window.track = p.track;
-
-			//console.log('Song: ' + track.name + ' by ' + track.artists[0].name);
-
-			updateCoverArt(track);
-			updateTrackTitle(track);
+			
+			/// something about being here
+			
+			if(p.track != undefined){
+				updateCoverArt(p.track);
+				updateTrackTitle(p.track);
+				updateLocalPlaylist();
+			}
+			else{
+				console.log("yo dawg, we're undefined."); //Probably from that moment between when a track stops and starts
+			}
+			
 		}).fail(function(error) {
 			console.log(error);
 		});
@@ -115,12 +150,17 @@ require([
 	};
 
 // move to player-functions
-	window.startTheParty = function() {
-		updateLocalPlaylist();
-		models.player.stop().done(function(p) {
-			models.player.playContext(models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty')); // There's probably a more right way to do this
+	$('#startTheParty').click(function(){
+		console.log('Let the party begin');
+		updateLocalPlaylist(function(){
+			models.player.stop().done(function(p) {
+				var theTempPlaylist = models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty');
+				models.player.playContext(theTempPlaylist); // There's probably a more right way to do this
+			});
 		});
-	}
+			
+	});
+
 
 	models.player.addEventListener('change:playing', function(p) {
 		console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
@@ -136,14 +176,15 @@ require([
 	window.songPosition = function() {
 
 		models.player.load('position', 'playing').done(function(p) {
-			var percentComplete = (p.position / p.duration);
-			console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
-			console.log('percentComplete: ' + percentComplete);
-
+			console.log(Math.round((p.duration - p.position)/1000) + " seconds left", Math.round((p.position / p.duration)*100) + '% complete');
+			
 			!p.playing ? stopChecking() : null;
-			if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
-				updateLocalPlaylist();
-				stopChecking();
+			if(p.position > 0){
+			
+				if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
+					updateLocalPlaylist();
+					stopChecking();
+				}
 			}
 		}).fail(function(error) {
 			console.log(error);
@@ -159,13 +200,6 @@ require([
 		//// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
 		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 	}
-
-	console.log('before billboard');
-	// set local storage for backup playlist
-	if(localStorage.backupPlaylist == undefined){
-	    localStorage.backupPlaylist = "spotify:user:billboard.com:playlist:6UeSakyzhiEt4NB3UAd6NQ"; // billboard hot 100
-	}
-	console.log('test billboard');
 
 // we should initialize some values
 	trackChange();
