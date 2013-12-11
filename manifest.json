@@ -1,41 +1,50 @@
 {
-  "AppDescription": {
-    "en": "Description of My Boilerplate App"
-  },
-  "AppIcon": {
-    "18x18": "images/logo/spotiparty_18.png",
-    "36x18": "images/logo/spotiparty_18.png",
-    "32x32": "images/logo/spotiparty_32.png",
-    "64x64": "images/logo/spotiparty_64.png",
-    "128x128": "images/logo/spotiparty_128.png",
-    "300x300": "images/logo/spotiparty_300.png"
-  },
-  "AppName": {
-    "en": "Spotiparty"
-  },
-  "BundleIdentifier": "spotiparty",
-  "BundleType": "Application",
-  "BundleVersion": "0.0.1",
-  "Dependencies": {
-    "api": "1.10.2",
-    "views": "1.18.1"
-  },
-  "RequiredPermissions": [
-    "https://api.mygreatapp.com"
-  ],
-  "SupportedDeviceClasses": [
-    "Web",
-    "Desktop"
-  ],
-  "VendorIdentifier": "co.spotiparty",
-  "DefaultTabs": [
-    {
-        "arguments": "index.html",
-        "title":  { "en": "Playlist" }
-    },
-    {
-        "arguments": "settings.html",
-        "title": { "en": "Settings" }
-    }
-]
+	"BundleType": "Application",
+	"BundleIdentifier": "kitchensink",
+	"BundleVersion": "0.1b",
+	"AcceptedLinkTypes":[
+		"album",
+		"artist",
+		"track",
+		"playlist",
+		"user"
+	],
+	"AppIcon": {
+		"18x18": "icon.png"
+	},
+	"AppName": {
+		"en": "Kitchen Sink"
+	},
+	"AppDescription": {
+		"en": "Spotify Kitchen Sink is a demo application for the Spotify Apps API."
+	},
+	"SupportedLanguages": [
+		"en"
+	],
+	"DefaultTabs": [
+		{
+			"arguments": "player",
+			"title": {
+				"en": "Player"
+			}
+		}, 
+		{
+			"arguments": "social",
+			"title": {
+				"en": "Social"
+			}
+		},
+		{
+			"arguments": "search",
+			"title": {
+				"en": "Search"
+			}
+        }
+	],
+	"RequiredPermissions": [
+		"https://*",
+		"http://*"
+	],
+	"RequiredInterface": "1",
+	"VendorIdentifier": "com.kitchensink"
 }
