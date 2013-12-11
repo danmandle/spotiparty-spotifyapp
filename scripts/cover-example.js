@@ -1,3 +1,5 @@
+console.log('cover loaded');
+
 require([
 	'$api/models',
 	'$views/image#Image',
@@ -154,6 +156,7 @@ require([
 			// have to set the timeout for, well, unknown reasons, but the value of the field wasn't populating
 
 			var playlistURI = urlToUri($('#backupPlaylist').val());
+			localStorage.backupPlaylist = playlistURI;
 
 			models.Playlist.fromURI(playlistURI).load('name').done(function(playlist) {
 				$('#backupPlaylist').val(playlist.name);
@@ -168,9 +171,17 @@ require([
 		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 	}
 
+	console.log('before billboard');
+	// set local storage for backup playlist
+	if(localStorage.backupPlaylist == undefined){
+	    localStorage.backupPlaylist = "spotify:user:billboard.com:playlist:6UeSakyzhiEt4NB3UAd6NQ"; // billboard hot 100
+	}
+	console.log('test billboard');
+
 	// we should initialize some values
 	trackChange();
 	updateLocalPlaylist();
+
 	
 	window.position = function(){
 		console.log('position requested');
