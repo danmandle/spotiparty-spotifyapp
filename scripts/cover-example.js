@@ -32,7 +32,7 @@ require([
 
 			window.track = p.track;
 
-			console.log('Song: ' + track.name + ' by ' + track.artists[0].name);
+			//console.log('Song: ' + track.name + ' by ' + track.artists[0].name);
 
 			updateCoverArt(track);
 			updateTrackTitle(track);
@@ -61,26 +61,30 @@ require([
 
 	window.songPosition = function() {
 		window.songPositionChecker = setInterval(function() {
-			models.player.load('position', 'playing').done(function(p) {
+			// window.position();
+		}, 2000);
 
-				// var percentComplete = Math.round((p.position / p.duration)*100);
+		// window.songPositionChecker = setInterval(function() {
+		// 	models.player.load('position', 'playing').done(function(p) {
 
-				var percentComplete = (p.position / p.duration);
-				console.log('seconds left: ' + (p.duration - p.position));
-				console.log('percentComplete: ' + percentComplete);
+		// 		// var percentComplete = Math.round((p.position / p.duration)*100);
 
-				// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
+		// 		var percentComplete = (p.position / p.duration);
+		// 		console.log('seconds left: ' + (p.duration - p.position));
+		// 		console.log('percentComplete: ' + percentComplete);
 
-				if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
-					updateLocalPlaylist();
-					stopChecking();
-				}
+		// 		// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
 
-				!p.playing ? stopChecking() : null;
-			}).fail(function(error) {
-				console.log(error);
-			});
-		}, 2000)
+		// 		if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
+		// 			updateLocalPlaylist();
+		// 			stopChecking();
+		// 		}
+
+		// 		!p.playing ? stopChecking() : null;
+		// 	}).fail(function(error) {
+		// 		console.log(error);
+		// 	});
+		// }, 2000)
 	}; // timeout needs to be greater than the less than above
 
 	window.stopChecking = function() {
@@ -113,7 +117,7 @@ require([
 		// AJAX call would go here...
 
 		var data = {
-			'songs': ['spotify:track:30g7tH1rfMratchnaLfgqJ', 'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ', 'spotify:track:5yc59J3MR3tVDPTOgwgRI5', 'spotify:track:2bD1AW4yqiCurGCva6r88a', 'spotify:track:3PJikMV2xGNCooQttQrAw5']
+			'songs': ['spotify:track:3PJikMV2xGNCooQttQrAw5', 'spotify:track:30g7tH1rfMratchnaLfgqJ', 'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ', 'spotify:track:5yc59J3MR3tVDPTOgwgRI5', 'spotify:track:2bD1AW4yqiCurGCva6r88a']
 		};
 		// var data = {'songs':[]};
 
@@ -167,4 +171,23 @@ require([
 	// we should initialize some values
 	trackChange();
 	updateLocalPlaylist();
+	
+	window.position = function(){
+		console.log('position requested');
+		models.player.load('position', 'playing').done(function(p) {
+			
+			window.thePlayer = p;
+			
+			// var percentComplete = Math.round((p.position / p.duration)*100);
+
+			var percentComplete = (p.position / p.duration);
+			console.log('seconds left: ' + (p.duration - p.position));
+			console.log('percentComplete: ' + percentComplete);
+
+			// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
+
+		}).fail(function(error) {
+			console.log(error);
+		});
+	};
 });
