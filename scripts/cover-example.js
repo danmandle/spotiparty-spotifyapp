@@ -7,92 +7,7 @@ require([
 ], function(models, Image, List) {
 	'use strict';
 
-	var imageURI = null;
-
-	window.startTheParty = function() {
-		updateLocalPlaylist();
-		models.player.stop().done(function(p) {
-			models.player.playContext(models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty')); // There's probably a more right way to do this
-		});
-	}
-
-	models.player.addEventListener('change:playing', function(p) {
-		console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
-
-		(p.target.playing) ? window.songPosition() : stopChecking();
-
-	});
-
-	// Gets fired when a track ends or is skipped
-	models.player.addEventListener('change:track', function(p) {
-		console.log('song changed');
-		trackChange();
-	});
-
-	function trackChange() {
-		models.player.load('track').done(function(p) {
-
-			window.track = p.track;
-
-			//console.log('Song: ' + track.name + ' by ' + track.artists[0].name);
-
-			updateCoverArt(track);
-			updateTrackTitle(track);
-		}).fail(function(error) {
-			console.log(error);
-		});
-
-	};
-
-	function updateCoverArt(track) {
-		var image = Image.forTrack(track, {
-			width: 500,
-			height: 500,
-			player: false
-		});
-		if (imageURI != image._item.uri) {
-			// evaluate so that it doesn't reload the image each time the play state changes
-			imageURI = image._item.uri;
-			$('#albumCoverContainer').html(image.node);
-		}
-	}
-
-	function updateTrackTitle(track) {
-		$('h1#current-track').text(track.artists[0].name + ' - ' + track.name);
-	}
-
-	window.songPosition = function() {
-		window.songPositionChecker = setInterval(function() {
-			// window.position();
-		}, 2000);
-
-		// window.songPositionChecker = setInterval(function() {
-		// 	models.player.load('position', 'playing').done(function(p) {
-
-		// 		// var percentComplete = Math.round((p.position / p.duration)*100);
-
-		// 		var percentComplete = (p.position / p.duration);
-		// 		console.log('seconds left: ' + (p.duration - p.position));
-		// 		console.log('percentComplete: ' + percentComplete);
-
-		// 		// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
-
-		// 		if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
-		// 			updateLocalPlaylist();
-		// 			stopChecking();
-		// 		}
-
-		// 		!p.playing ? stopChecking() : null;
-		// 	}).fail(function(error) {
-		// 		console.log(error);
-		// 	});
-		// }, 2000)
-	}; // timeout needs to be greater than the less than above
-
-	window.stopChecking = function() {
-		clearInterval(window.songPositionChecker);
-	}
-
+//move to playlist-control
 	function updateLocalPlaylist() {
 
 		models.Playlist.createTemporary('Spotiparty').done(function(p) {
@@ -137,6 +52,9 @@ require([
 		}
 	}
 
+//move to view
+	var imageURI = null;
+
 	$('#backupPlaylist').bind('dragenter', function() {
 
 		$('#backupPlaylist').val('');
@@ -164,6 +82,77 @@ require([
 		}, this), 0);
 	});
 
+	function updateCoverArt(track) {
+		var image = Image.forTrack(track, {
+			width: 500,
+			height: 500,
+			player: false
+		});
+		if (imageURI != image._item.uri) {
+			// evaluate so that it doesn't reload the image each time the play state changes
+			imageURI = image._item.uri;
+			$('#albumCoverContainer').html(image.node);
+		}
+	}
+
+	function updateTrackTitle(track) {
+		$('h1#current-track').text(track.artists[0].name + ' - ' + track.name);
+	}
+
+	function trackChange() {
+		models.player.load('track').done(function(p) {
+
+			window.track = p.track;
+
+			//console.log('Song: ' + track.name + ' by ' + track.artists[0].name);
+
+			updateCoverArt(track);
+			updateTrackTitle(track);
+		}).fail(function(error) {
+			console.log(error);
+		});
+
+	};
+
+// move to player-functions
+	window.startTheParty = function() {
+		updateLocalPlaylist();
+		models.player.stop().done(function(p) {
+			models.player.playContext(models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty')); // There's probably a more right way to do this
+		});
+	}
+
+	models.player.addEventListener('change:playing', function(p) {
+		console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
+		(p.target.playing) ? window.startChecking() : stopChecking();
+	});
+
+	// Gets fired when a track ends or is skipped
+	models.player.addEventListener('change:track', function(p) {
+		console.log('song changed');
+		trackChange();
+	});
+
+	window.songPosition = function() {
+
+		models.player.load('position', 'playing').done(function(p) {
+			var percentComplete = (p.position / p.duration);
+			console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
+			console.log('percentComplete: ' + percentComplete);
+
+			!p.playing ? stopChecking() : null;
+			if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
+				updateLocalPlaylist();
+				stopChecking();
+			}
+		}).fail(function(error) {
+			console.log(error);
+		});
+	};
+
+	window.startChecking = function(){window.songPositionChecker = window.setInterval(songPosition, 2000)};
+	window.stopChecking = function() {clearInterval(window.songPositionChecker)};
+
 	window.urlToUri = function(url) {
 		// convert URL to URI
 		//// http://open.spotify.com/user/danmandle/playlist/5ZwcCib9Fp38CygXSTi9Fw
@@ -178,27 +167,9 @@ require([
 	}
 	console.log('test billboard');
 
-	// we should initialize some values
+// we should initialize some values
 	trackChange();
 	updateLocalPlaylist();
+	startChecking();	
 
-	
-	window.position = function(){
-		console.log('position requested');
-		models.player.load('position', 'playing').done(function(p) {
-			
-			window.thePlayer = p;
-			
-			// var percentComplete = Math.round((p.position / p.duration)*100);
-
-			var percentComplete = (p.position / p.duration);
-			console.log('seconds left: ' + (p.duration - p.position));
-			console.log('percentComplete: ' + percentComplete);
-
-			// console.log(Math.round((p.duration - p.position)/1000) + " seconds left");
-
-		}).fail(function(error) {
-			console.log(error);
-		});
-	};
 });
