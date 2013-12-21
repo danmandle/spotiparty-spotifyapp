@@ -27,9 +27,8 @@ require([
 			});
 
 			// Gets fired when a track ends or is skipped
-			models.player.addEventListener('change:track', function(p) {
-				console.log('song changed', p);
-				updateCurrentPlayingView();
+			models.player.addEventListener('change:track', function(e) {
+				trackChanged(e);
 
 			});
 
@@ -44,6 +43,23 @@ require([
 	}
 
 //move to playlist-control
+	$('#clearPlaylist').click(function(){
+		clearTempPlaylist();
+	});
+	function clearTempPlaylist(){
+		console.log('Clearing Temp Playlist');
+		window.temporaryPlaylist.load("tracks").done(function(spotipartyPlaylist) {
+			spotipartyPlaylist.tracks.clear();
+			setTimeout($.proxy(function() {
+				var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
+				$('#playlistContainer').html(list.node);
+				list.init();
+			}, this), 10);
+		}).fail(function(error) {
+			console.log(error);
+		});
+	}
+
 	function updateLocalPlaylist(callback) {
 		// console.log('The callback: ', callback);
 
@@ -51,9 +67,11 @@ require([
 
 			models.player.load('track').done(function(player) {
 				if(player.track != null){
-					spotipartyPlaylist.tracks.trim(player.track);
+					// spotipartyPlaylist.tracks.trim(player.track);
 					// spotipartyPlaylist.tracks.clear();
 					// console.log(spotipartyPlaylist.tracks.toArray());
+
+					console.log('should trim the playlist, but not this time...');
 				}
 				updatePlaylistFromWeb(spotipartyPlaylist);
 
@@ -115,6 +133,11 @@ require([
 		}
 	}
 
+	function removePlayedSong(trackURI){
+		// remove URI from web playlist
+		console.log('removed', trackURI);
+	}
+
 //move to view
 	if(localStorage.backupPlaylist != undefined){	    
 	    models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
@@ -151,10 +174,23 @@ require([
 		}, this), 0);
 	});
 
-
-	function updateCurrentPlayingView() {
+	function updateCurrentPlayingView(maybePlayer) {
 		console.log('trying ot update current play view');
-		models.player.load('track').done(function(player) {
+
+		if(maybePlayer){
+			// use the player from the event
+			updateView(maybePlayer);
+		}
+		else{
+			models.player.load('track').done(function(player) {
+				updateView(player);
+			}).fail(function(error) {
+				console.log("error on player load", error);
+			});
+
+		}
+
+		function updateView(player){
 			if(player.track != undefined){
 
 				console.log("track",player.track.name);
@@ -175,10 +211,7 @@ require([
 			else{
 				console.log("yo dawg, player track is undefined."); //Probably from that moment between when a track stops and starts
 			}
-			
-		}).fail(function(error) {
-			console.log("error on player load", error);
-		});
+		}
 
 	};
 
@@ -187,13 +220,24 @@ require([
 		console.log('Let the party begin');
 		updateLocalPlaylist(function(){
 			models.player.stop().done(function(p) {
-				//// models.player.playContext(models.Playlist.fromURI(window.temporaryPlaylist.uri)); // There's probably a more right way to do this
+				models.player.playContext(window.temporaryPlaylist); // There's probably a more right way to do this
 			});
 		});
 			
 	});
 
+	function trackChanged(e){
+		console.log('track changed');
+
+		startChecking();
+
+		(e.oldValue != null) ? removePlayedSong(e.oldValue.uri) : undefined;
+
+		updateCurrentPlayingView(e.target);
+	}
+
 	window.songPosition = function() {
+		// window.checking = true;
 
 		models.player.load('position', 'playing').done(function(p) {
 			
@@ -226,10 +270,19 @@ require([
 		// setTimeout($.proxy(function() {
 		// 	window.songPositionChecker = window.setInterval(songPosition, 2000);
 		// }, this), 5000);
-
-		window.songPositionChecker = window.setInterval(songPosition, 2000);
+		if(window.checking){
+			console.log('already checking');
+		}
+		else{
+			window.checking = true;
+			window.songPositionChecker = window.setInterval(songPosition, 2000);
+		}
 	};
-	window.stopChecking = function() {console.log('stopped checking');clearInterval(window.songPositionChecker)};
+	window.stopChecking = function() {
+		window.checking = false;
+		console.log('stopped checking');
+		clearInterval(window.songPositionChecker);
+	};
 
 	window.urlToUri = function(url) {
 		// convert URL to URI
