@@ -13,7 +13,7 @@ require([
 				console.log("playlist " + playlist.name + " created");
 				updateLocalPlaylist();
 			}).fail(function(error) {
-				console.log("Error creating temp playlist", error);
+				console.error("Error creating temp playlist", error);
 			});
 
 			// models.player.addEventListener('change', function(e) {
@@ -59,8 +59,16 @@ require([
 				list.init();
 			}, this), 10);
 		}).fail(function(error) {
-			console.log(error);
+			console.error(error);
 		});
+	}
+
+	function updatePlaylistList(){
+		setTimeout($.proxy(function() {
+			var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
+			$('#playlistContainer').html(list.node);
+			list.init();
+		}, this), 100);
 	}
 
 	function updateLocalPlaylist(callback) {
@@ -68,30 +76,40 @@ require([
 
 		window.temporaryPlaylist.load("tracks").done(function(spotipartyPlaylist) {
 
-			models.player.load('track').done(function(player) {
-				if(player.track != null){
-					// spotipartyPlaylist.tracks.trim(player.track);
+			models.player.load('track', 'context').done(function(player) {
+				// console.log(player);
+
+				// if(false){
+				if(player.track != null && player.context != null){
+					spotipartyPlaylist.tracks.trim(player.track).done(function(p){
+						console.log('done trimming',p);
+
+						setTimeout($.proxy(function() {
+							updatePlaylistFromWeb(spotipartyPlaylist);
+						}, this), 10);
+
+
+					}).fail(function(error) {
+						console.error("trimming mishap",error);
+					});
 					// spotipartyPlaylist.tracks.clear();
 					// console.log(spotipartyPlaylist.tracks.toArray());
 
-					console.log('should trim the playlist, but not this time...');
 				}
-				updatePlaylistFromWeb(spotipartyPlaylist);
+				else{
+					updatePlaylistFromWeb(spotipartyPlaylist);
+				}
+
 
 				callback ? callback() : undefined;
 
 			}).fail(function(error) {
-				console.log(error);
+				console.error(error);
 			});
 
-			setTimeout($.proxy(function() {
-				var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
-				$('#playlistContainer').html(list.node);
-				list.init();
-			}, this), 10);
 
 		}).fail(function(error) {
-			console.log(error);
+			console.error(error);
 		});
 	}
 
@@ -134,6 +152,8 @@ require([
 		} else {
 			console.log('No songs in the queue');
 		}
+
+		updatePlaylistList();
 	}
 
 	function removePlayedSong(trackURI){
@@ -188,7 +208,7 @@ require([
 			models.player.load('track').done(function(player) {
 				updateView(player);
 			}).fail(function(error) {
-				console.log("error on player load", error);
+				console.error("error on player load", error);
 			});
 
 		}
@@ -196,7 +216,7 @@ require([
 		function updateView(player){
 			if(player.track != undefined){
 
-				console.log("track",player.track.name);
+				// console.log("track",player.track.name);
 
 				$('h1#current-track').text(player.track.artists[0].name + ' - ' + player.track.name);
 
@@ -234,7 +254,7 @@ require([
 
 		// models.player.load('position', 'playing').done(function(p) {
 
-		e.target.context.uri;
+		// e.target.context.uri;
 
 		startChecking();
 
@@ -268,7 +288,7 @@ require([
 				stopChecking();
 			}
 		}).fail(function(error) {
-			console.log(error);
+			console.error(error);
 		});
 	};
 
