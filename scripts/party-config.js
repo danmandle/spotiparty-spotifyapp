@@ -32,6 +32,5 @@ require(['$api/models', '$api/location'], function(models, location) {
 		  radius: localStorage.radius
 		}
 		});
-		console.log('should sent');
   });
 });
