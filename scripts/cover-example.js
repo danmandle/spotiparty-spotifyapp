@@ -16,9 +16,13 @@ require([
 				console.log("Error creating temp playlist", error);
 			});
 
-			models.player.addEventListener('change:playing', function(p) {
-				console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
-				if(p.target.playing){
+			// models.player.addEventListener('change', function(e) {
+			// 	console.error('something changed',e);
+			// });
+
+			models.player.addEventListener('change:playing', function(e) {
+				console.log((e.target.playing ? 'Started' : 'Stopped') + ' playing');
+				if(e.target.playing){
 					window.startChecking();
 				}
 				else{
@@ -29,7 +33,6 @@ require([
 			// Gets fired when a track ends or is skipped
 			models.player.addEventListener('change:track', function(e) {
 				trackChanged(e);
-
 			});
 
 			window.appInitialized = true;
@@ -227,7 +230,11 @@ require([
 	});
 
 	function trackChanged(e){
-		console.log('track changed');
+		console.log('track changed',e);
+
+		// models.player.load('position', 'playing').done(function(p) {
+
+		e.target.context.uri;
 
 		startChecking();
 
