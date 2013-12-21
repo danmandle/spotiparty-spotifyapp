@@ -294,4 +294,25 @@ require([
 
 
 init();
+
+function addSwipeWatcher(){			
+	//Enable swiping...
+	$("body").swipe( {
+		//Generic swipe handler for all directions
+		swipe:function(event, direction, distance, duration, fingerCount) {
+			if(direction == "left"){
+				console.log('swipe back');
+				models.player.skipToPrevTrack();
+			}
+			if(direction == "right"){
+				console.log('swipe next');
+				models.player.skipToNextTrack();
+			}
+		},
+		//Default is 75px, set to 50
+	   threshold:50
+	});
+}
+addSwipeWatcher();
+
 });
