@@ -18,6 +18,7 @@ require(['$api/models', '$api/location'], function(models, location) {
     evt.preventDefault();
     var $form = $(this);
     var name = $form.find('#partyName').val();
+    var user = $form.find('#user').val();
     
     $.ajax({
 		url: 'http://192.168.10.152:1337/party',
@@ -25,6 +26,7 @@ require(['$api/models', '$api/location'], function(models, location) {
 		crossDomain: true,
 		data: {
 		  partyName: name,
+		 	user: user,
 		  lat: localStorage.latitude,
 		  long: localStorage.longitude,
 		  radius: localStorage.radius

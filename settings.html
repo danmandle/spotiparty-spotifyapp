@@ -17,16 +17,14 @@
   </head>
   <body>
     <div id="partyContainer">
-    <h1>Settings</h1>
         <form id="createPartyForm">
         <div id="map"></div>
 
-
+		    <h1>Settings</h1>
         <h3>Party Name</h3>
         <input type="text" id="partyName">
         
-        <h3>User</h3>
-        <input type="text" id="user">
+        <input type="hidden" id="user">
 
         <h3>Party Location</h3>
         <p>Use the map to set the location of your party. Drag the arrow to reposition the party.</p>
@@ -69,7 +67,7 @@ function drawMap(){
 
 
 		var marker = L.marker([localStorage.latitude, localStorage.longitude]).addTo(window.map)
-			.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
+			.bindPopup("<b>Your Spotiparty!</b>").openPopup();
 			
 		window.circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
 				color: 'red',
