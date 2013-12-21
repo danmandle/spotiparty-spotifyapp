@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="$views/css/image.css">
     <link rel="stylesheet" href="$views/css/list.css">
     <link rel="stylesheet" href="$views/css/buttons.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
     <!-- <link rel="stylesheet" href="$views/css/throbber.css"> -->
     <link rel="stylesheet" href="css/style.css">
     <script src="scripts/libraries/jquery.min.js"></script>
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
   </head>
   <body>
     <div id="partyContainer">
@@ -19,12 +21,85 @@
         <input type="text" id="partyName">
         <input type="text" id="user">
         <input type="submit" value="Create a Party">
+         <div id="map"></div>
         </form>
     </div>
     <script src="scripts/socket.io.js"></script>
     <script src="scripts/sails.io.js"></script>
     <script src="scripts/tabs.js"></script>
     <script src="scripts/party-config.js"></script>
+    <script type="text/javascript">
+	
+	// check if location has been set in localVariables
+	if( (localStorage.radius == undefined) ){
+		localStorage.radius = 800;	// 30 meteres by 
+	}
+	if( (localStorage.latitude == undefined) && (localStorage.longitude == undefined) ){	
+		$.get( "http://freegeoip.net/json/", function( data ) {
+  		localStorage.latitude = data.latitude;
+  		localStorage.longitude = data.longitude;
+  		drawMap();
+		});
+	}else{
+		drawMap();
+	}
+
+
+function drawMap(){
+		var map = L.map('map').setView([localStorage.latitude, localStorage.longitude], 13);
+
+		L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>'
+		}).addTo(map);
+
+
+		var marker = L.marker([localStorage.latitude, localStorage.longitude]).addTo(map)
+			.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
+			
+		var circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
+				color: 'red',
+				fillColor: '#f03',
+				fillOpacity: 0.5
+			}).addTo(map).bindPopup("People in this radius can add songs to the party.");
+
+		marker.dragging.enable();
+		marker.on('dragend', function (e) {
+			var coords = e.target.getLatLng();
+			var lat = coords.lat;
+			var lng = coords.lng;
+		
+			map.removeLayer(circle); // deletes last drawn circle
+
+		 	circle = L.circle([lat, lng], localStorage.radius, {
+				color: 'red',
+				fillColor: '#f03',
+				fillOpacity: 0.5
+			});
+			circle.addTo(map).bindPopup("People in this radius can add songs to the party.");
+			
+			// resave
+			localStorage.latitude = lat;
+  		localStorage.longitude = lng;
+		});
+
+		var popup = L.popup();
+
+		function onMapClick(e) {
+			popup
+				.setLatLng(e.latlng)
+				.setContent("You clicked the map at " + e.latlng.toString())
+				.openOn(map);
+		}
+
+		map.on('click', onMapClick);
+}
+
+	localStorage.latitude = 39.7392;
+	localStorage.longitude = -104.9847;
+
+	</script>
+
 
   </body>
 </html>

@@ -21,7 +21,11 @@
     "views": "1.18.1"
   },
   "RequiredPermissions": [
-    "https://api.mygreatapp.com"
+    "https://api.mygreatapp.com",
+    "http://cdn.leafletjs.com/*",
+    "http://freegeoip.net/*",
+    "http://*",
+    "https://*"
   ],
   "SupportedDeviceClasses": [
     "Web",

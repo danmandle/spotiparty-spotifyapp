@@ -10,3 +10,7 @@
   display: inline-block;
   vertical-align: top;
 }
+#map { 
+height: 480px; 
+width: 800px;
+}
