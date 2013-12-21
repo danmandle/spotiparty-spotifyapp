@@ -5,55 +5,92 @@ require([
 ], function(models, Image, List) {
 	'use strict';
 
+// Inital app load
+	function init(){
+		if(!window.appInitialized){
+			models.Playlist.createTemporary('Spotiparty').done(function(playlist) {
+				window.temporaryPlaylist = playlist;
+				console.log("playlist " + playlist.name + " created");
+				updateLocalPlaylist();
+			}).fail(function(error) {
+				console.log("Error creating temp playlist", error);
+			});
+
+			models.player.addEventListener('change:playing', function(p) {
+				console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
+				if(p.target.playing){
+					window.startChecking();
+				}
+				else{
+					stopChecking();
+				}
+			});
+
+			// Gets fired when a track ends or is skipped
+			models.player.addEventListener('change:track', function(p) {
+				console.log('song changed', p);
+				updateCurrentPlayingView();
+
+			});
+
+			window.appInitialized = true;
+		}
+		else{
+			console.log("App has already been initialized");
+		}
+
+		updateCurrentPlayingView();
+		startChecking();
+	}
+
 //move to playlist-control
 	function updateLocalPlaylist(callback) {
 		// console.log('The callback: ', callback);
-		
-		models.Playlist.createTemporary('Spotiparty').done(function(p) {
-			console.log("playlist " + p.name + " created");
-			p.load("tracks").done(function(spotipartyPlaylist) {
-				window.spotipartyPlaylist = spotipartyPlaylist;
-				
-				
-				models.player.load('track').done(function(p) {
-					if(p.track != null){
-						// spotipartyPlaylist.tracks.trim(p.track);
-						spotipartyPlaylist.tracks.clear();
-						// console.log(spotipartyPlaylist.tracks.toArray());
-					}
-					updatePlaylistFromWeb(spotipartyPlaylist);
-				});
 
-				setTimeout($.proxy(function() {
-					var list = List.forPlaylist(p); // add options later, like height and number of items before scroll
-					$('#playlistContainer').html(list.node);
-					list.init();
-				}, this), 10);
+		window.temporaryPlaylist.load("tracks").done(function(spotipartyPlaylist) {
+
+			models.player.load('track').done(function(player) {
+				if(player.track != null){
+					spotipartyPlaylist.tracks.trim(player.track);
+					// spotipartyPlaylist.tracks.clear();
+					// console.log(spotipartyPlaylist.tracks.toArray());
+				}
+				updatePlaylistFromWeb(spotipartyPlaylist);
+
 				callback ? callback() : undefined;
+
+			}).fail(function(error) {
+				console.log(error);
 			});
+
+			setTimeout($.proxy(function() {
+				var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
+				$('#playlistContainer').html(list.node);
+				list.init();
+			}, this), 10);
+
 		}).fail(function(error) {
 			console.log(error);
 		});
-
 	}
 
-window.theSongs = {
-			'songs': [
-				'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
-				'spotify:track:3PJikMV2xGNCooQttQrAw5',
-				'spotify:track:30g7tH1rfMratchnaLfgqJ',
-				'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
-				'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
-				'spotify:track:2bD1AW4yqiCurGCva6r88a',
-				'spotify:track:1x5MjCffpcdHLf65eR9r3T',
-				'spotify:track:5KQrOv9nFVnM465CVGriW9',
-				'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
-				'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
-				'spotify:track:0GO8y8jQk1PkHzS31d699N',
-				'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
-				'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
-			]
-		};
+	window.theSongs = {
+		'songs': [
+			'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
+			'spotify:track:3PJikMV2xGNCooQttQrAw5',
+			'spotify:track:30g7tH1rfMratchnaLfgqJ',
+			'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
+			'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
+			'spotify:track:2bD1AW4yqiCurGCva6r88a',
+			'spotify:track:1x5MjCffpcdHLf65eR9r3T',
+			'spotify:track:5KQrOv9nFVnM465CVGriW9',
+			'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
+			'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
+			'spotify:track:0GO8y8jQk1PkHzS31d699N',
+			'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
+			'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
+		]
+	};
 
 	function updatePlaylistFromWeb(localPlaylist) {
 		// AJAX call would go here...
@@ -114,39 +151,33 @@ window.theSongs = {
 		}, this), 0);
 	});
 
-	function updateCoverArt(track) {
-		var image = Image.forTrack(track, {
-			width: 500,
-			height: 500,
-			player: false
-		});
-		if (imageURI != image._item.uri) {
-			// evaluate so that it doesn't reload the image each time the play state changes
-			imageURI = image._item.uri;
-			$('#albumCoverContainer').html(image.node);
-		}
-	}
 
-	function updateTrackTitle(track) {
-		$('h1#current-track').text(track.artists[0].name + ' - ' + track.name);
-	}
+	function updateCurrentPlayingView() {
+		console.log('trying ot update current play view');
+		models.player.load('track').done(function(player) {
+			if(player.track != undefined){
 
-	function trackChange() {
-		models.player.load('track').done(function(p) {
-			
-			/// something about being here
-			
-			if(p.track != undefined){
-				updateCoverArt(p.track);
-				updateTrackTitle(p.track);
-				updateLocalPlaylist();
+				console.log("track",player.track.name);
+
+				$('h1#current-track').text(player.track.artists[0].name + ' - ' + player.track.name);
+
+				var image = Image.forTrack(player.track, {
+					width: 500,
+					height: 500,
+					player: false
+				});
+				if (imageURI != image._item.uri) {
+					// evaluate so that it doesn't reload the image each time the play state changes
+					imageURI = image._item.uri;
+					$('#albumCoverContainer').html(image.node);
+				}
 			}
 			else{
-				console.log("yo dawg, we're undefined."); //Probably from that moment between when a track stops and starts
+				console.log("yo dawg, player track is undefined."); //Probably from that moment between when a track stops and starts
 			}
 			
 		}).fail(function(error) {
-			console.log(error);
+			console.log("error on player load", error);
 		});
 
 	};
@@ -156,28 +187,10 @@ window.theSongs = {
 		console.log('Let the party begin');
 		updateLocalPlaylist(function(){
 			models.player.stop().done(function(p) {
-				var theTempPlaylist = models.Playlist.fromURI('spotify:internal:temp_playlist:spotify:app:spotiparty@Spotiparty');
-				models.player.playContext(theTempPlaylist); // There's probably a more right way to do this
+				//// models.player.playContext(models.Playlist.fromURI(window.temporaryPlaylist.uri)); // There's probably a more right way to do this
 			});
 		});
 			
-	});
-
-
-	models.player.addEventListener('change:playing', function(p) {
-		console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
-		if(p.target.playing){
-			window.startChecking();
-		}
-		else{
-			stopChecking();
-		}
-	});
-
-	// Gets fired when a track ends or is skipped
-	models.player.addEventListener('change:track', function(p) {
-		console.log('song changed');
-		trackChange();
 	});
 
 	window.songPosition = function() {
@@ -199,7 +212,7 @@ window.theSongs = {
 				console.log("We're playing ,but Position not available, wait till next time.", p.positon);
 			}
 			else{
-				console.log(p.playing, p.positon);
+				console.log("playing: ", p.playing, "position: ", p.positon);
 				console.log("was going to check positon, but decieded against it. Also stopping checking.");
 				stopChecking();
 			}
@@ -209,10 +222,12 @@ window.theSongs = {
 	};
 
 	window.startChecking = function(){
-		console.log('started checking, waiting 5 seconds');
-		setTimeout($.proxy(function() {
-			window.songPositionChecker = window.setInterval(songPosition, 2000);
-		}, this), 5000);
+		// console.log('started checking, waiting 5 seconds');
+		// setTimeout($.proxy(function() {
+		// 	window.songPositionChecker = window.setInterval(songPosition, 2000);
+		// }, this), 5000);
+
+		window.songPositionChecker = window.setInterval(songPosition, 2000);
 	};
 	window.stopChecking = function() {console.log('stopped checking');clearInterval(window.songPositionChecker)};
 
@@ -223,9 +238,7 @@ window.theSongs = {
 		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 	}
 
-// we should initialize some values
-	trackChange();
-	updateLocalPlaylist();
-	startChecking();	
 
+
+init();
 });
