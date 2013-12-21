@@ -17,11 +17,25 @@
   </head>
   <body>
     <div id="partyContainer">
+    <h1>Settings</h1>
         <form id="createPartyForm">
+        <div id="map"></div>
+
+
+        <h3>Party Name</h3>
         <input type="text" id="partyName">
+        
+        <h3>User</h3>
         <input type="text" id="user">
-        <input type="submit" value="Create a Party">
-         <div id="map"></div>
+
+        <h3>Party Location</h3>
+        <p>Use the map to set the location of your party. Drag the arrow to reposition the party.</p>
+        
+        <h3>Party Radius</h3>
+        <button id="increaseRadius">+</button><button id="decreaseRadius">-</button><br/><br/><br/><br/>
+ 
+        <input type="submit" class="greenButton" value="Create a Party"></td>
+        
         </form>
     </div>
     <script src="scripts/socket.io.js"></script>
@@ -32,7 +46,7 @@
 	
 	// check if location has been set in localVariables
 	if( (localStorage.radius == undefined) ){
-		localStorage.radius = 800;	// 30 meteres by 
+		localStorage.radius = 30;	// 30 meteres by default
 	}
 	if( (localStorage.latitude == undefined) && (localStorage.longitude == undefined) ){	
 		$.get( "http://freegeoip.net/json/", function( data ) {
@@ -46,7 +60,7 @@
 
 
 function drawMap(){
-		var map = L.map('map').setView([localStorage.latitude, localStorage.longitude], 13);
+		window.map = L.map('map').setView([localStorage.latitude, localStorage.longitude], 17);
 
 		L.tileLayer('http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/997/256/{z}/{x}/{y}.png', {
 			maxZoom: 18,
@@ -54,14 +68,14 @@ function drawMap(){
 		}).addTo(map);
 
 
-		var marker = L.marker([localStorage.latitude, localStorage.longitude]).addTo(map)
+		var marker = L.marker([localStorage.latitude, localStorage.longitude]).addTo(window.map)
 			.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
 			
-		var circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
+		window.circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.5
-			}).addTo(map).bindPopup("People in this radius can add songs to the party.");
+			}).addTo(window.map).bindPopup("People in this radius can add songs to the party.");
 
 		marker.dragging.enable();
 		marker.on('dragend', function (e) {
@@ -69,14 +83,14 @@ function drawMap(){
 			var lat = coords.lat;
 			var lng = coords.lng;
 		
-			map.removeLayer(circle); // deletes last drawn circle
+			window.map.removeLayer(window.circle); // deletes last drawn circle
 
-		 	circle = L.circle([lat, lng], localStorage.radius, {
+		 	window.circle = L.circle([lat, lng], localStorage.radius, {
 				color: 'red',
 				fillColor: '#f03',
 				fillOpacity: 0.5
 			});
-			circle.addTo(map).bindPopup("People in this radius can add songs to the party.");
+			window.circle.addTo(window.map).bindPopup("People in this radius can add songs to the party.");
 			
 			// resave
 			localStorage.latitude = lat;
@@ -89,14 +103,35 @@ function drawMap(){
 			popup
 				.setLatLng(e.latlng)
 				.setContent("You clicked the map at " + e.latlng.toString())
-				.openOn(map);
+				.openOn(window.map);
 		}
 
-		map.on('click', onMapClick);
+		window.map.on('click', onMapClick);
 }
 
-	localStorage.latitude = 39.7392;
-	localStorage.longitude = -104.9847;
+function redrawCircle(){
+	window.map.removeLayer(window.circle); // deletes last drawn circle
+
+ 	window.circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
+		color: 'red',
+		fillColor: '#f03',
+		fillOpacity: 0.5
+	});
+	window.circle.addTo(window.map).bindPopup("People in this radius can add songs to the party.");
+}
+
+$(function() {	
+	$( "#increaseRadius" ).click(function() {
+  	console.log('increase');
+		localStorage.radius = parseInt(localStorage.radius) + 5;
+		redrawCircle();
+	});
+	$( "#decreaseRadius" ).click(function() {
+  	console.log('decrease');
+		localStorage.radius = parseInt(localStorage.radius) - 5;
+		redrawCircle();
+	});
+});
 
 	</script>
 

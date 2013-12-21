@@ -18,5 +18,18 @@ require(['$api/models', '$api/location'], function(models, location) {
     evt.preventDefault();
     var $form = $(this);
     var name = $form.find('#partyName').val();
+    
+    $.ajax({
+		url: 'http://192.168.10.152:1337/party',
+		type: 'POST',
+		crossDomain: true,
+		data: {
+		  partyName: name,
+		  lat: localStorage.latitude,
+		  long: localStorage.longitude,
+		  radius: localStorage.radius
+		}
+		});
+		console.log('should sent');
   });
 });

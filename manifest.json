@@ -24,6 +24,8 @@
     "https://api.mygreatapp.com",
     "http://cdn.leafletjs.com/*",
     "http://freegeoip.net/*",
+    "http://192.168.10.152*",
+    "http://192.168.10.152:1337/*",
     "http://*",
     "https://*"
   ],
