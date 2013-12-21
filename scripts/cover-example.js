@@ -67,10 +67,12 @@ window.theSongs = {
 			$.each(window.theSongs.songs, function(index, value) {
 				localPlaylist.tracks.add(models.Track.fromURI(value));
 
-				console.log("added track uri " + value);
+				// console.log("added track uri " + value);
 			});
+			console.log('Added a bunch of songs');
+			
 			///// This is to remove a song each time one is played
-			window.theSongs.songs.shift();
+			// window.theSongs.songs.shift();
 		} else {
 			console.log('No songs in the queue');
 		}
@@ -164,7 +166,12 @@ window.theSongs = {
 
 	models.player.addEventListener('change:playing', function(p) {
 		console.log((p.target.playing ? 'Started' : 'Stopped') + ' playing');
-		(p.target.playing) ? window.startChecking() : stopChecking();
+		if(p.target.playing){
+			window.startChecking();
+		}
+		else{
+			stopChecking();
+		}
 	});
 
 	// Gets fired when a track ends or is skipped
@@ -176,23 +183,38 @@ window.theSongs = {
 	window.songPosition = function() {
 
 		models.player.load('position', 'playing').done(function(p) {
-			console.log(Math.round((p.duration - p.position)/1000) + " seconds left", Math.round((p.position / p.duration)*100) + '% complete');
 			
-			!p.playing ? stopChecking() : null;
-			if(p.position > 0){
+			// !p.playing ? stopChecking() : null;
+			if(p.playing && p.position > 0){
+				
+				console.log(Math.round((p.duration - p.position)/1000) + " seconds left", Math.round((p.position / p.duration)*100) + '% complete');
 			
 				if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
+					console.log('Time to update the localPlaylist');
 					updateLocalPlaylist();
 					stopChecking();
 				}
+			}
+			else if(p.playing){
+				console.log("We're playing ,but Position not available, wait till next time.", p.positon);
+			}
+			else{
+				console.log(p.playing, p.positon);
+				console.log("was going to check positon, but decieded against it. Also stopping checking.");
+				stopChecking();
 			}
 		}).fail(function(error) {
 			console.log(error);
 		});
 	};
 
-	window.startChecking = function(){window.songPositionChecker = window.setInterval(songPosition, 2000)};
-	window.stopChecking = function() {clearInterval(window.songPositionChecker)};
+	window.startChecking = function(){
+		console.log('started checking, waiting 5 seconds');
+		setTimeout($.proxy(function() {
+			window.songPositionChecker = window.setInterval(songPosition, 2000);
+		}, this), 5000);
+	};
+	window.stopChecking = function() {console.log('stopped checking');clearInterval(window.songPositionChecker)};
 
 	window.urlToUri = function(url) {
 		// convert URL to URI
