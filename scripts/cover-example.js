@@ -71,7 +71,7 @@ require([
 			list.init();
 		}, this), 100);
 	}
-
+	
 	function updateLocalPlaylist(callback) {
 		// console.log('The callback: ', callback);
 
@@ -82,8 +82,20 @@ require([
 
 				// if(false){
 				if(player.track != null && player.context != null){
-					spotipartyPlaylist.tracks.trim(player.track).done(function(p){
-						console.log('done trimming',p);
+					// spotipartyPlaylist.tracks.trim(player.track).done(function(p){
+					// 	console.log('done trimming',p);
+
+					// 	setTimeout($.proxy(function() {
+					// 		updatePlaylistFromWeb(spotipartyPlaylist);
+					// 	}, this), 10);
+
+
+					// }).fail(function(error) {
+					// 	console.error("trimming mishap",error);
+					// });
+					
+					spotipartyPlaylist.tracks.clear(window.temporaryPlaylist).done(function(p){
+						console.log('done clearing',p);
 
 						setTimeout($.proxy(function() {
 							updatePlaylistFromWeb(spotipartyPlaylist);
@@ -91,8 +103,9 @@ require([
 
 
 					}).fail(function(error) {
-						console.error("trimming mishap",error);
+						console.error("clearing mishap",error);
 					});
+			
 					// spotipartyPlaylist.tracks.clear();
 					// console.log(spotipartyPlaylist.tracks.toArray());
 
