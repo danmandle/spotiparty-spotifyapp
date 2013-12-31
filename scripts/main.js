@@ -1,7 +1,7 @@
 require([
   '$api/models',
   // 'scripts/language-example',
-  'scripts/cover-example',
+  'scripts/spotiparty',
   'scripts/jquery.touchSwipe.min',
   // 'scripts/button-example',
   // 'scripts/playlist-example',

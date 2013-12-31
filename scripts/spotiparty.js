@@ -8,13 +8,72 @@ require([
 // Inital app load
 	function init(){
 		if(!window.appInitialized){
-			models.Playlist.createTemporary('Spotiparty').done(function(playlist) {
-				window.temporaryPlaylist = playlist;
+			
+			console.log("Initalizing");
+			
+			window.playlistReady = [];
+			
+			window.theSongs = {
+				'songs': [
+					'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
+					'spotify:track:3PJikMV2xGNCooQttQrAw5',
+					'spotify:track:30g7tH1rfMratchnaLfgqJ',
+					'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
+					'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
+					'spotify:track:2bD1AW4yqiCurGCva6r88a',
+					'spotify:track:1x5MjCffpcdHLf65eR9r3T',
+					'spotify:track:5KQrOv9nFVnM465CVGriW9',
+					'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
+					'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
+					'spotify:track:0GO8y8jQk1PkHzS31d699N',
+					'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
+					'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
+				]
+			};
+			
+			// models.Playlist.createTemporary('theQueue').done(function(playlist) {
+			// 	window.theQueue = playlist;
+			// 	console.log("playlist " + playlist.name + " created", playlist);
+				
+			// 	console.log("first created", window.theQueue, window.webTempPlaylist);
+				
+			// 	// models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {
+			// 	// 	window.webTempPlaylist = playlist2;
+					
+			// 	// 	console.log("second created", window.theQueue, window.webTempPlaylist);
+					
+			// 	// 	console.log("playlist " + playlist2.name + " created");
+			// 	// 	updateLocalPlaylist();
+			// 	// }).fail(function(error) {
+			// 	// 	console.error("Error creating temp playlist", error);
+			// 	// });
+				
+			// }).fail(function(error) {
+			// 	console.error("Error creating temp playlist", error);
+			// });
+			
+			
+			models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {
+				window.webTempPlaylist = playlist;
+				
+				// console.log("first created", window.theQueue, window.webTempPlaylist);
 				console.log("playlist " + playlist.name + " created");
-				updateLocalPlaylist();
+				
+				models.Playlist.createTemporary('theQueue').done(function(playlist) {
+					window.theQueue = playlist;
+					
+					console.log("playlist " + playlist.name + " created");
+					
+					updateLocalPlaylist();
+					
+				}).fail(function(error) {
+					console.error("Error creating temp playlist", error);
+				});
+				
 			}).fail(function(error) {
 				console.error("Error creating temp playlist", error);
 			});
+			
 
 			// models.player.addEventListener('change', function(e) {
 			// 	console.error('something changed',e);
@@ -46,56 +105,53 @@ require([
 		addSwipeWatcher();
 	}
 
-//move to playlist-control
+// Playlist Control
 	$('#clearPlaylist').click(function(){
 		clearTempPlaylist();
 	});
 	function clearTempPlaylist(){
 		console.log('Clearing Temp Playlist');
-		window.temporaryPlaylist.load("tracks").done(function(spotipartyPlaylist) {
+		window.webTempPlaylist.load("tracks").done(function(spotipartyPlaylist) {
 			spotipartyPlaylist.tracks.clear();
-			setTimeout($.proxy(function() {
-				var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
-				$('#playlistContainer').html(list.node);
-				list.init();
-			}, this), 10);
+			updatePlaylistList('#playlistContainer', window.webTempPlaylist);
 		}).fail(function(error) {
 			console.error(error);
 		});
 	}
+	
+	$('#clearQueue').click(function(){
+		console.log('Clearing Temp Playlist');
+		window.theQueue.load("tracks").done(function(spotipartyPlaylist) {
+			spotipartyPlaylist.tracks.clear();
+			updatePlaylistList('#playQueue', window.theQueue);
+		}).fail(function(error) {
+			console.error(error);
+		});
+	});
 
-	function updatePlaylistList(){
+	function updatePlaylistList(div, playlist){
 		setTimeout($.proxy(function() {
-			var list = List.forPlaylist(window.temporaryPlaylist); // add options later, like height and number of items before scroll
-			$('#playlistContainer').html(list.node);
+			var list = List.forPlaylist(playlist); // add options later, like height and number of items before scroll
+			$(div).html(list.node);
 			list.init();
 		}, this), 100);
 	}
 	
+	
+	
 	function updateLocalPlaylist(callback) {
 		// console.log('The callback: ', callback);
 
-		window.temporaryPlaylist.load("tracks").done(function(spotipartyPlaylist) {
+		window.webTempPlaylist.load("tracks").done(function(spotipartyPlaylist) {
 
 			models.player.load('track', 'context').done(function(player) {
 				// console.log(player);
 
 				// if(false){
 				if(player.track != null && player.context != null){
-					// spotipartyPlaylist.tracks.trim(player.track).done(function(p){
-					// 	console.log('done trimming',p);
-
-					// 	setTimeout($.proxy(function() {
-					// 		updatePlaylistFromWeb(spotipartyPlaylist);
-					// 	}, this), 10);
-
-
-					// }).fail(function(error) {
-					// 	console.error("trimming mishap",error);
-					// });
 					
-					spotipartyPlaylist.tracks.clear(window.temporaryPlaylist).done(function(p){
-						console.log('done clearing',p);
+					spotipartyPlaylist.tracks.clear(window.webTempPlaylist).done(function(p){
+						// console.log('done clearing');
 
 						setTimeout($.proxy(function() {
 							updatePlaylistFromWeb(spotipartyPlaylist);
@@ -114,7 +170,6 @@ require([
 					updatePlaylistFromWeb(spotipartyPlaylist);
 				}
 
-
 				callback ? callback() : undefined;
 
 			}).fail(function(error) {
@@ -126,24 +181,34 @@ require([
 			console.error(error);
 		});
 	}
-
-	window.theSongs = {
-		'songs': [
-			'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
-			'spotify:track:3PJikMV2xGNCooQttQrAw5',
-			'spotify:track:30g7tH1rfMratchnaLfgqJ',
-			'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
-			'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
-			'spotify:track:2bD1AW4yqiCurGCva6r88a',
-			'spotify:track:1x5MjCffpcdHLf65eR9r3T',
-			'spotify:track:5KQrOv9nFVnM465CVGriW9',
-			'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
-			'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
-			'spotify:track:0GO8y8jQk1PkHzS31d699N',
-			'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
-			'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
-		]
-	};
+	
+	function addNextSongToQueue(track){
+		window.songAdded = true;
+		
+		var theTrack = models.Track.fromURI(track);
+		
+		removePlayedSong(theTrack);
+		
+		// console.log("so i can find it again", theTrack);
+		
+		window.theQueue.load("tracks").done(function(queue) {
+			queue.tracks.add(theTrack).done(function(track){
+				
+				console.log("Added " + theTrack.name + " to " + window.theQueue.name);
+				
+				updatePlaylistList('#playQueue', window.theQueue);
+			});
+		});
+	}
+	
+	function removePlayedSong(track){
+		// remove URI from web playlist
+		console.log('removed', track.name);
+		
+		window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
+		
+		window.songAdded = false;
+	}
 
 	function updatePlaylistFromWeb(localPlaylist) {
 		// AJAX call would go here...
@@ -154,28 +219,30 @@ require([
 
 			// localPlaylist.tracks.insert(0, window.theSongs.songs); // that 0 might not be right
 
-			$.each(window.theSongs.songs, function(index, value) {
-				localPlaylist.tracks.add(models.Track.fromURI(value));
+			// $.each(window.theSongs.songs, function(index, value) {
+			// 	models.Track.fromURI(value).load('name', 'uri').done(function(track) {
+			//     	localPlaylist.tracks.add(track);
 
-				// console.log("added track uri " + value);
-			});
-			console.log('Added a bunch of songs');
+			// 		console.log("added track " + track.artists[0].name + " - " + track.name);
+			//     });
+			// });
+			// console.log('Added a bunch of songs');
 			
-			///// This is to remove a song each time one is played
-			// window.theSongs.songs.shift();
+			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
+				// added all songs to display 
+				
+				updatePlaylistList('#playlistContainer', window.webTempPlaylist);
+			});
+			
+			window.songAdded ? null : addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));	
+			
 		} else {
 			console.log('No songs in the queue');
 		}
-
-		updatePlaylistList();
 	}
 
-	function removePlayedSong(trackURI){
-		// remove URI from web playlist
-		console.log('removed', trackURI);
-	}
-
-//move to view
+	
+// View
 	if(localStorage.backupPlaylist != undefined){	    
 	    models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
 	    	$('#backupPlaylist').val(playlist.name);
@@ -212,7 +279,7 @@ require([
 	});
 
 	function updateCurrentPlayingView(maybePlayer) {
-		console.log('trying ot update current play view');
+		console.log('trying to update current play view');
 
 		if(maybePlayer){
 			// use the player from the event
@@ -263,6 +330,11 @@ require([
 				if(direction == "right"){
 					console.log('swipe next');
 					models.player.skipToNextTrack();
+					
+					
+					updateLocalPlaylist();
+					//  should also updateLocalPlaylist(); in addition to removing current song from web queue
+					
 				}
 			},
 			//Default is 75px, set to 50
@@ -270,19 +342,19 @@ require([
 		});
 	}
 
-// move to player-functions
+// Player Functions
 	$('#startTheParty').click(function(){
 		console.log('Let the party begin');
 		updateLocalPlaylist(function(){
 			models.player.stop().done(function(p) {
-				models.player.playContext(window.temporaryPlaylist); // There's probably a more right way to do this
+				models.player.playContext(window.theQueue);
 			});
 		});
 			
 	});
 
 	function trackChanged(e){
-		console.log('track changed',e);
+		console.log('track changed');
 
 		// models.player.load('position', 'playing').done(function(p) {
 
@@ -290,9 +362,10 @@ require([
 
 		startChecking();
 
-		(e.oldValue != null) ? removePlayedSong(e.oldValue.uri) : undefined;
+		// (e.oldValue != null) ? removePlayedSong(e.oldValue) : undefined;
 
 		updateCurrentPlayingView(e.target);
+		
 	}
 
 	window.songPosition = function() {
