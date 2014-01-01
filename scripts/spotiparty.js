@@ -8,11 +8,9 @@ require([
 // Inital app load
 	function init(){
 		if(!window.appInitialized){
-			
+
 			console.log("Initalizing");
-			
-			window.playlistReady = [];
-			
+
 			window.theSongs = {
 				'songs': [
 					'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
@@ -30,50 +28,30 @@ require([
 					'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
 				]
 			};
-			
-			// models.Playlist.createTemporary('theQueue').done(function(playlist) {
-			// 	window.theQueue = playlist;
-			// 	console.log("playlist " + playlist.name + " created", playlist);
-				
-			// 	console.log("first created", window.theQueue, window.webTempPlaylist);
-				
-			// 	// models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {
-			// 	// 	window.webTempPlaylist = playlist2;
-					
-			// 	// 	console.log("second created", window.theQueue, window.webTempPlaylist);
-					
-			// 	// 	console.log("playlist " + playlist2.name + " created");
-			// 	// 	updateLocalPlaylist();
-			// 	// }).fail(function(error) {
-			// 	// 	console.error("Error creating temp playlist", error);
-			// 	// });
-				
-			// }).fail(function(error) {
-			// 	console.error("Error creating temp playlist", error);
-			// });
-			
-			
+
+			// window.theSongs = {'songs' : []};
+
 			models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {
 				window.webTempPlaylist = playlist;
-				
+
 				// console.log("first created", window.theQueue, window.webTempPlaylist);
 				console.log("playlist " + playlist.name + " created");
-				
+
 				models.Playlist.createTemporary('theQueue').done(function(playlist) {
 					window.theQueue = playlist;
-					
+
 					console.log("playlist " + playlist.name + " created");
-					
+
 					updateLocalPlaylist();
-					
+
 				}).fail(function(error) {
 					console.error("Error creating temp playlist", error);
 				});
-				
+
 			}).fail(function(error) {
 				console.error("Error creating temp playlist", error);
 			});
-			
+
 
 			// models.player.addEventListener('change', function(e) {
 			// 	console.error('something changed',e);
@@ -118,7 +96,7 @@ require([
 			console.error(error);
 		});
 	}
-	
+
 	$('#clearQueue').click(function(){
 		console.log('Clearing Temp Playlist');
 		window.theQueue.load("tracks").done(function(spotipartyPlaylist) {
@@ -136,9 +114,9 @@ require([
 			list.init();
 		}, this), 100);
 	}
-	
-	
-	
+
+
+
 	function updateLocalPlaylist(callback) {
 		// console.log('The callback: ', callback);
 
@@ -149,7 +127,7 @@ require([
 
 				// if(false){
 				if(player.track != null && player.context != null){
-					
+
 					spotipartyPlaylist.tracks.clear(window.webTempPlaylist).done(function(p){
 						// console.log('done clearing');
 
@@ -161,7 +139,7 @@ require([
 					}).fail(function(error) {
 						console.error("clearing mishap",error);
 					});
-			
+
 					// spotipartyPlaylist.tracks.clear();
 					// console.log(spotipartyPlaylist.tracks.toArray());
 
@@ -181,74 +159,81 @@ require([
 			console.error(error);
 		});
 	}
-	
+
 	function addNextSongToQueue(track){
 		window.songAdded = true;
-		
+
 		var theTrack = models.Track.fromURI(track);
-		
+
 		removePlayedSong(theTrack);
-		
+
 		// console.log("so i can find it again", theTrack);
-		
+
 		window.theQueue.load("tracks").done(function(queue) {
 			queue.tracks.add(theTrack).done(function(track){
-				
+
 				console.log("Added " + theTrack.name + " to " + window.theQueue.name);
-				
+
 				updatePlaylistList('#playQueue', window.theQueue);
 			});
 		});
 	}
-	
+
 	function removePlayedSong(track){
 		// remove URI from web playlist
 		console.log('removed', track.name);
-		
+
 		window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
-		
+
 		window.songAdded = false;
 	}
 
 	function updatePlaylistFromWeb(localPlaylist) {
 		// AJAX call would go here...
-		
+
 		// var window.theSongs = {'songs':[]};
 
 		if (window.theSongs.songs.length > 0) {
-
-			// localPlaylist.tracks.insert(0, window.theSongs.songs); // that 0 might not be right
-
-			// $.each(window.theSongs.songs, function(index, value) {
-			// 	models.Track.fromURI(value).load('name', 'uri').done(function(track) {
-			//     	localPlaylist.tracks.add(track);
-
-			// 		console.log("added track " + track.artists[0].name + " - " + track.name);
-			//     });
-			// });
-			// console.log('Added a bunch of songs');
-			
 			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
-				// added all songs to display 
-				
+				// added all songs to display
+
 				updatePlaylistList('#playlistContainer', window.webTempPlaylist);
 			});
-			
-			window.songAdded ? null : addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));	
-			
+
+			window.songAdded ? null : addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));
+
 		} else {
 			console.log('No songs in the queue');
+			grabFromBackupPlaylist();
 		}
 	}
 
-	
+	function grabFromBackupPlaylist(){
+
+		if(localStorage.backupPlaylist){
+			models.Playlist.fromURI(localStorage.backupPlaylist).load('name','uri','tracks').done(function(playlist) {
+				playlist.tracks.snapshot().done(function(snapshot) {
+					var tracksInPlaylist = snapshot.toArray();
+
+					var selectedTrack = tracksInPlaylist[Math.floor(Math.random()*tracksInPlaylist.length)];
+
+					addNextSongToQueue(selectedTrack);
+				});
+			});
+		}
+		else{
+			console.error("Backup Playlist not set. Out of songs to play.");
+		}
+	}
+
+
 // View
-	if(localStorage.backupPlaylist != undefined){	    
+	if(localStorage.backupPlaylist != undefined){
 	    models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
 	    	$('#backupPlaylist').val(playlist.name);
 	    });
 	}
-	
+
 	var imageURI = null;
 
 	$('#backupPlaylist').bind('dragenter', function() {
@@ -318,7 +303,7 @@ require([
 		}
 
 	};
-	function addSwipeWatcher(){			
+	function addSwipeWatcher(){
 		//Enable swiping...
 		$("body").swipe( {
 			//Generic swipe handler for all directions
@@ -330,11 +315,8 @@ require([
 				if(direction == "right"){
 					console.log('swipe next');
 					models.player.skipToNextTrack();
-					
-					
+
 					updateLocalPlaylist();
-					//  should also updateLocalPlaylist(); in addition to removing current song from web queue
-					
 				}
 			},
 			//Default is 75px, set to 50
@@ -350,7 +332,7 @@ require([
 				models.player.playContext(window.theQueue);
 			});
 		});
-			
+
 	});
 
 	function trackChanged(e){
@@ -365,19 +347,19 @@ require([
 		// (e.oldValue != null) ? removePlayedSong(e.oldValue) : undefined;
 
 		updateCurrentPlayingView(e.target);
-		
+
 	}
 
 	window.songPosition = function() {
 		// window.checking = true;
 
 		models.player.load('position', 'playing').done(function(p) {
-			
+
 			// !p.playing ? stopChecking() : null;
 			if(p.playing && p.position > 0){
-				
+
 				console.log(Math.round((p.duration - p.position)/1000) + " seconds left", Math.round((p.position / p.duration)*100) + '% complete');
-			
+
 				if ((p.duration - p.position) < 30000) { // if there's less that 30 seconds left in the song
 					console.log('Time to update the localPlaylist');
 					updateLocalPlaylist();
