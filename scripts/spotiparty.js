@@ -181,7 +181,7 @@ require([
 
 	function removePlayedSong(track){
 		// remove URI from web playlist
-		console.log('removed', track.name);
+		console.log('removed', track.name, "from web queue");
 
 		window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
 
@@ -194,14 +194,13 @@ require([
 		// var window.theSongs = {'songs':[]};
 
 		if (window.theSongs.songs.length > 0) {
-			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
-				// added all songs to display
-
-				updatePlaylistList('#playlistContainer', window.webTempPlaylist);
-			});
 
 			window.songAdded ? null : addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));
 
+			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
+				// added all songs to display
+				updatePlaylistList('#playlistContainer', window.webTempPlaylist);
+			});
 		} else {
 			console.log('No songs in the queue');
 			grabFromBackupPlaylist();
@@ -209,7 +208,6 @@ require([
 	}
 
 	function grabFromBackupPlaylist(){
-
 		if(localStorage.backupPlaylist){
 			models.Playlist.fromURI(localStorage.backupPlaylist).load('name','uri','tracks').done(function(playlist) {
 				playlist.tracks.snapshot().done(function(snapshot) {
