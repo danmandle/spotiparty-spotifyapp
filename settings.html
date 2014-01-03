@@ -23,17 +23,17 @@
 		    <h1>Settings</h1>
         <h3>Party Name</h3>
         <input type="text" id="partyName">
-        
+
         <input type="hidden" id="user">
 
         <h3>Party Location</h3>
         <p>Use the map to set the location of your party. Drag the arrow to reposition the party.</p>
-        
+
         <h3>Party Radius</h3>
         <button id="increaseRadius" type="button">+</button><button id="decreaseRadius" type="button">-</button><br/><br/><br/><br/>
- 
+
         <input type="submit" class="greenButton" value="Create a Party"></td>
-        
+
         </form>
     </div>
     <script src="scripts/socket.io.js"></script>
@@ -41,12 +41,12 @@
     <script src="scripts/tabs.js"></script>
     <script src="scripts/party-config.js"></script>
     <script type="text/javascript">
-	
+
 	// check if location has been set in localVariables
 	if( (localStorage.radius == undefined) ){
 		localStorage.radius = 30;	// 30 meteres by default
 	}
-	if( (localStorage.latitude == undefined) && (localStorage.longitude == undefined) ){	
+	if( (localStorage.latitude == undefined) && (localStorage.longitude == undefined) ){
 		$.get( "http://freegeoip.net/json/", function( data ) {
   		localStorage.latitude = data.latitude;
   		localStorage.longitude = data.longitude;
@@ -68,7 +68,7 @@ function drawMap(){
 
 		var marker = L.marker([localStorage.latitude, localStorage.longitude]).addTo(window.map)
 			.bindPopup("<b>Your Spotiparty!</b>").openPopup();
-			
+
 		window.circle = L.circle([localStorage.latitude, localStorage.longitude], localStorage.radius, {
 				color: 'red',
 				fillColor: '#f03',
@@ -80,7 +80,7 @@ function drawMap(){
 			var coords = e.target.getLatLng();
 			var lat = coords.lat;
 			var lng = coords.lng;
-		
+
 			window.map.removeLayer(window.circle); // deletes last drawn circle
 
 		 	window.circle = L.circle([lat, lng], localStorage.radius, {
@@ -89,7 +89,7 @@ function drawMap(){
 				fillOpacity: 0.5
 			});
 			window.circle.addTo(window.map).bindPopup("People in this radius can add songs to the party.");
-			
+
 			// resave
 			localStorage.latitude = lat;
   		localStorage.longitude = lng;
@@ -118,15 +118,15 @@ function redrawCircle(){
 	window.circle.addTo(window.map).bindPopup("People in this radius can add songs to the party.");
 }
 
-$(function() {	
+$(function() {
 	$( "#increaseRadius" ).click(function() {
   	console.log('increase');
-		localStorage.radius = parseInt(localStorage.radius) + 5;
+		localStorage.radius = parseInt(localStorage.radius) + 50;
 		redrawCircle();
 	});
 	$( "#decreaseRadius" ).click(function() {
   	console.log('decrease');
-		localStorage.radius = parseInt(localStorage.radius) - 5;
+		localStorage.radius = parseInt(localStorage.radius) - 50;
 		redrawCircle();
 	});
 });
