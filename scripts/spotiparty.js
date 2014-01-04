@@ -232,6 +232,8 @@ require([
 	    });
 	}
 
+
+
 	var imageURI = null;
 
 	$('#backupPlaylist').bind('dragenter', function() {
@@ -406,6 +408,10 @@ require([
 		//// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
 		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 	}
+
+if(localStorage.partyName != undefined){
+   $('#partyNameTop').text("Spotiparty - " + localStorage.partyName);
+}
 
 
 

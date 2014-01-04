@@ -16,14 +16,14 @@
 		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
   </head>
   <body>
-  	<h1 id="partyName">Settings</h1>
+  	<h1 id="partyNameTop">Settings</h1>
     <div id="partyContainer">
         <form id="createPartyForm">
         	<div id="map"></div>
 
         <div class="leftSidebar">
         <h3 class="spotify-underline title-width extra-margin">Party Name</h3>
-        <input type="text" id="partyName">
+        <input type="text" id="partyName" name="partyName">
 
         <input type="hidden" id="user">
 
@@ -199,6 +199,11 @@ if(localStorage.backupPlaylist != undefined){
 	models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
 		$('#backupPlaylist').val(playlist.name);
 	});
+}
+
+
+if(localStorage.partyName != undefined){
+   $('#partyName').val(localStorage.partyName);
 }
 
 

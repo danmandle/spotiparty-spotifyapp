@@ -20,6 +20,8 @@ require(['$api/models', '$api/location'], function(models, location) {
     var name = $form.find('#partyName').val();
     var user = $form.find('#user').val();
 
+    localStorage.partyName = name;
+
     $.ajax({
 		url: 'http://127.0.0.1:1337/party',
 		type: 'POST',
