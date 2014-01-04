@@ -29,6 +29,10 @@ require([
 				]
 			};
 
+				models.User.fromURI('spotify:user:@').load('username', 'name').done(function(user) {
+				    // console.log("user: ", user);
+				});
+
 			// window.theSongs = {'songs' : []};
 
 			models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {

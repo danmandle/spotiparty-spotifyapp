@@ -4,11 +4,11 @@ require(['$api/models', '$api/location'], function(models, location) {
   //   alert('connect')
   // });
   // var Party = {};
-  // var user = models.User.fromURI('spotify:user:@');
-  //   user.load('username', 'name').done(function(u) {
-  //     $('#user').val(u.identifier);
-  //     Party.user = u;
-  // });
+	var user = models.User.fromURI('spotify:user:@');
+    user.load('username', 'name').done(function(u) {
+	    $('#user').val(u.username);
+	    // Party.user = u;
+	});
   // var loc = location.Location.query();
   // loc.load(['latitude']).done(function(loc) {
   //   console.log("Latitude: " + loc.latitude);
@@ -33,6 +33,8 @@ require(['$api/models', '$api/location'], function(models, location) {
 		  long: localStorage.longitude,
 		  radius: localStorage.radius
 		}
-		});
+	}).done(function(){
+		console.log("AJAX'd");
+	});
   });
 });
