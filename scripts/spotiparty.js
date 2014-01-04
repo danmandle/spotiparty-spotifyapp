@@ -40,10 +40,13 @@ require([
 				models.Playlist.createTemporary('theQueue').done(function(playlist) {
 					window.theQueue = playlist;
 
-					console.log("playlist " + playlist.name + " created");
+					console.log("playlist " + playlist.name + " created", playlist);
 
-					updateLocalPlaylist();
-
+					playlist.load('tracks').done(function(playlist){
+						playlist.tracks.clear().done(function(){
+							updateLocalPlaylist();
+						});
+					});
 				}).fail(function(error) {
 					console.error("Error creating temp playlist", error);
 				});
@@ -73,6 +76,7 @@ require([
 			});
 
 			window.appInitialized = true;
+			window.firstTime = true;
 		}
 		else{
 			console.log("App has already been initialized");
@@ -195,7 +199,12 @@ require([
 
 		if (window.theSongs.songs.length > 0) {
 
-			window.songAdded ? null : addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));
+			if(!window.songAdded && !window.firstTime){
+				addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));
+			}
+			else if(window.firstTime){
+				window.firstTime = false;
+			}
 
 			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
 				// added all songs to display
