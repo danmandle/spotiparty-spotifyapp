@@ -38,7 +38,7 @@
   "DefaultTabs": [
     {
         "arguments": "index.html",
-        "title":  { "en": "Playlist" }
+        "title":  { "en": "Spotiparty" }
     },
     {
         "arguments": "settings.html",
