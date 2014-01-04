@@ -16,23 +16,44 @@
 		<script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
   </head>
   <body>
+  	<h1 id="partyName">Settings</h1>
     <div id="partyContainer">
         <form id="createPartyForm">
-        <div id="map"></div>
+        	<div id="map"></div>
 
-		    <h1>Settings</h1>
-        <h3>Party Name</h3>
+        <div class="leftSidebar">
+        <h3 class="spotify-underline title-width extra-margin">Party Name</h3>
         <input type="text" id="partyName">
 
         <input type="hidden" id="user">
 
-        <h3>Party Location</h3>
+        <h3 class="spotify-underline title-width extra-margin">Party Location</h3>
         <p>Use the map to set the location of your party. Drag the arrow to reposition the party.</p>
 
-        <h3>Party Radius</h3>
-        <button id="increaseRadius" type="button">+</button><button id="decreaseRadius" type="button">-</button><br/><br/><br/><br/>
+        <h3 class="spotify-underline title-width extra-margin">Party Radius</h3>
+         <button type="button" id="increaseRadius" draggable="true" data-sp-button="true" class="sp-button">
+        	<span class="sp-button-text">
+        		+
+        	</span>
+        	<span class="sp-button-background"></span>
+       	</button>
 
-        <input type="submit" class="greenButton" value="Create a Party"></td>
+       	<button type="submit" id="decreaseRadius" draggable="true" data-sp-button="true" class="sp-button">
+        	<span class="sp-button-text">
+        		-
+        	</span>
+        	<span class="sp-button-background"></span>
+       	</button>
+
+        <h3 class="spotify-underline title-width extra-margin">Backup Playlist</h3>
+        <input id='backupPlaylist' placeholder='Drag a backup playlist here' /><br/><br/><br/>
+        <button type="submit" draggable="true" data-sp-button="true" class="sp-button">
+        	<span class="sp-button-text">
+        		Save Settings
+        	</span>
+        	<span class="sp-button-background"></span>
+       	</button>
+       </div>
 
         </form>
     </div>
@@ -41,6 +62,12 @@
     <script src="scripts/tabs.js"></script>
     <script src="scripts/party-config.js"></script>
     <script type="text/javascript">
+require([
+	'$api/models',
+	'$views/image#Image',
+	'$views/list#List'
+], function(models, Image, List) {
+	'use strict';
 
 	// check if location has been set in localVariables
 	if( (localStorage.radius == undefined) ){
@@ -131,6 +158,51 @@ $(function() {
 	});
 });
 
+
+	$('#backupPlaylist').bind('dragenter', function() {
+		$('#backupPlaylist').val('');
+	});
+
+	$('#backupPlaylist').bind('change', function() {
+
+		console.log('The changed conent: ' + $('#backupPlaylist').val());
+	});
+
+	$('#backupPlaylist').bind('drop', function() {
+
+		// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
+		// http://open.spotify.com/user/danmandle/playlist/5ZwcCib9Fp38CygXSTi9Fw
+
+		setTimeout($.proxy(function() {
+			// have to set the timeout for, well, unknown reasons, but the value of the field wasn't populating
+
+			var playlistURI = urlToUri($('#backupPlaylist').val());
+			localStorage.backupPlaylist = playlistURI;
+
+			models.Playlist.fromURI(playlistURI).load('name').done(function(playlist) {
+				$('#backupPlaylist').val(playlist.name);
+			});
+		}, this), 0);
+	});
+
+
+	window.urlToUri = function(url) {
+		// convert URL to URI
+		//// http://open.spotify.com/user/danmandle/playlist/5ZwcCib9Fp38CygXSTi9Fw
+		//// spotify:user:danmandle:playlist:5ZwcCib9Fp38CygXSTi9Fw
+		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
+	}
+
+
+// prepop backup playlist if set in localstorage
+if(localStorage.backupPlaylist != undefined){
+	models.Playlist.fromURI(localStorage.backupPlaylist).load('name').done(function(playlist) {
+		$('#backupPlaylist').val(playlist.name);
+	});
+}
+
+
+}); // end require
 	</script>
 
 

@@ -277,16 +277,20 @@ require([
 
 		}
 
+
 		function updateView(player){
 			if(player.track != undefined){
 
 				// console.log("track",player.track.name);
 
-				$('h1#current-track').text(player.track.artists[0].name + ' - ' + player.track.name);
+				$('#current-track-artist').text(player.track.artists[0].name);
+				$('#current-track-title').text(player.track.name);
+
+				console.log(player.track);
 
 				var image = Image.forTrack(player.track, {
-					width: 500,
-					height: 500,
+					width: 130,
+					height: 130,
 					player: false
 				});
 				if (imageURI != image._item.uri) {

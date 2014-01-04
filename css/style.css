@@ -1,7 +1,10 @@
 /* Include your CSS rules here */
-
+body {
+	margin: 0;
+	padding: 0;
+}
 #albumCoverContainer {
-  width: 60%;
+  float: left;
 }
 #partyContainer {
   width: 39%;
@@ -11,11 +14,11 @@
   vertical-align: top;
 }
 #createPartyForm {
-	width: 800px;
+	width: 850px;
 }
 #createPartyForm h3 {
-	margin: 8px 0 0 0;
-	padding: 0;
+	margin: 12px 0 10px 0;
+	width: 280px;
 }
 #createPartyForm p {
 	width: 270px;
@@ -28,8 +31,10 @@
 }
 #map { 
 height: 400px; 
-width: 500px;
+width: 530px;
 float: right;
+border-radius: 4px;
+box-shadow: inset 0 1px 3px rgba(0,0,0, 0.2), inset 0 0 1px rgba(0,0,0, 0.4), 0 1px 0px rgba(255,255,255, 0.5);
 }
 form table th {
 	text-align: right;
@@ -78,4 +83,53 @@ form table th {
 }.greenButton:active {
 	position:relative;
 	top:1px;
+}
+#increaseRadius, #decreaseRadius {
+	min-width: 10px;
+}
+.topBar {
+	margin: 10px 10px 6px 10px;
+}
+.spotify-underline {
+	border-bottom: solid 1px #cac9c5;
+	padding: 6px 0;
+	margin: 0 0 10px 0;
+font-size: 12px;
+}
+.title-width {
+	width: 410px;
+}
+#partyName {
+	background: #FFF;
+	padding: 5px 10px;
+	font-size: 17px;
+	margin: 0;
+}
+.right-logo {
+	float: right;
+	margin: 43px 40px 0 0;
+}
+#current-track-artist, #current-track-title {
+	margin: 0 0 0 140px;
+}
+#current-track-artist {
+	font-size: 20px;
+}
+#current-track-title {
+	font-weight: normal;
+	font-size: 16px;
+	background: url(../images/icons/volume-icon.png) no-repeat left center;
+	padding-left: 18px;
+}
+.clear {
+	clear: both;
+}
+#startTheParty {
+	float: right;
+}
+.extra-margin {
+	margin-bottom: 20px;
+}
+.leftSidebar {
+	margin-left: 10px;
 }

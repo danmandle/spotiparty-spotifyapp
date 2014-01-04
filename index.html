@@ -15,16 +15,29 @@
 
   </head>
   <body>
-    <h1 id='current-track'></h1>
-    <div id="albumCoverContainer"></div>
+    <h1 id="partyName">Spotiparty - AT&T Hackfest</h1>
+    <div class="topBar">
+        <button type="button" id="startTheParty" draggable="true" data-sp-button="true" class="sp-button">
+            <span class="sp-button-text">
+                Start The Party
+            </span>
+            <span class="sp-button-background"></span>
+        </button>
+        <div class="right-logo">
+            <img src="images/logo/spotiparty-logo.png">
+        </div>
+        <div class="left-info">
+            <h3 class="spotify-underline title-width">Now Playing</h3>
+            <div id="albumCoverContainer"></div>
+            <h4 id="current-track-artist"></h4>
+            <h4 id="current-track-title"></h4>
+        </div>
+    </div>
+    <div class="clear"></div><br/><br/>
     <div id="buttonContainer"></div>
-    <button id='startTheParty'>Start the Party!</button>
-    <button id='clearPlaylist'>Clear Temp Playlist</button>
-    <button id='clearQueue'>Clear Play Queue</button>
-    <input id='backupPlaylist' placeholder='Drag a backup playlist here' style="width:200px;"/>
-    <p>Queue:</p>
-    <div id="playQueue"></div>
-    <p>Online:</p>
+    <button id='clearPlaylist' style="display: none;">Clear Temp Playlist</button>
+    <button id='clearQueue' style="display: none;">Clear Play Queue</button>
+    <div id="playQueue" style="display: none;"></div>
     <div id="playlistContainer"></div>
     <script src="scripts/tabs.js"></script>
     <script src="scripts/main.js"></script>
