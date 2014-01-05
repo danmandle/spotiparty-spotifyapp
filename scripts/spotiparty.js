@@ -36,20 +36,28 @@ require([
 				// console.log("first created", window.theQueue, window.webTempPlaylist);
 				console.log("playlist " + playlist.name + " created");
 
-				models.Playlist.createTemporary('theQueue').done(function(playlist) {
-					window.theQueue = playlist;
+				playlist.load('tracks').done(function(playlist){
+					playlist.tracks.clear().done(function(){
 
-					console.log("playlist " + playlist.name + " created", playlist);
+						models.Playlist.createTemporary('theQueue').done(function(playlist) {
+							window.theQueue = playlist;
 
-					playlist.load('tracks').done(function(playlist){
-						playlist.tracks.clear().done(function(){
-							updateLocalPlaylist();
-						}).fail(function(){
-							console.error("Error clearing theQueue tracks");
+							console.log("playlist " + playlist.name + " created", playlist);
+
+							playlist.load('tracks').done(function(playlist){
+								playlist.tracks.clear().done(function(){
+									updateLocalPlaylist();
+								}).fail(function(){
+									console.error("Error clearing theQueue tracks");
+								});
+							});
+						}).fail(function(error) {
+							console.error("Error creating temp playlist", error);
 						});
+
+					}).fail(function(){
+						console.error("Error clearing theQueue tracks");
 					});
-				}).fail(function(error) {
-					console.error("Error creating temp playlist", error);
 				});
 
 			}).fail(function(error) {
@@ -113,6 +121,7 @@ require([
 	});
 
 	function updatePlaylistList(div, playlist){
+
 		setTimeout($.proxy(function() {
 			var list = List.forPlaylist(playlist); // add options later, like height and number of items before scroll
 			$(div).html(list.node);
@@ -131,7 +140,7 @@ require([
 				// console.log(player);
 
 				// if(false){
-				if(player.track != null && player.context != null){
+				// if(player.track != null){
 
 					spotipartyPlaylist.tracks.clear(window.webTempPlaylist).done(function(p){
 						// console.log('done clearing');
@@ -148,10 +157,10 @@ require([
 					// spotipartyPlaylist.tracks.clear();
 					// console.log(spotipartyPlaylist.tracks.toArray());
 
-				}
-				else{
-					updatePlaylistFromWeb(spotipartyPlaylist, callback);
-				}
+				// }
+				// else{
+				// 	updatePlaylistFromWeb(spotipartyPlaylist, callback);
+				// }
 
 			}).fail(function(error) {
 				console.error(error);
