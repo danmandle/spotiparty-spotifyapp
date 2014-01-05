@@ -34,7 +34,7 @@ require(['$api/models', '$api/location'], function(models, location) {
 		  radius: localStorage.radius
 		}
 	}).done(function(){
-		console.log("AJAX'd");
+		console.log("AJAX'd form");
 	});
   });
 });

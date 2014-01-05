@@ -11,30 +11,25 @@ require([
 
 			console.log("Initalizing");
 
-			window.theSongs = {
-				'songs': [
-					'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
-					'spotify:track:3PJikMV2xGNCooQttQrAw5',
-					'spotify:track:30g7tH1rfMratchnaLfgqJ',
-					'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
-					'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
-					'spotify:track:2bD1AW4yqiCurGCva6r88a',
-					'spotify:track:1x5MjCffpcdHLf65eR9r3T',
-					'spotify:track:5KQrOv9nFVnM465CVGriW9',
-					'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
-					'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
-					'spotify:track:0GO8y8jQk1PkHzS31d699N',
-					'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
-					'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
-				]
-			};
-
-				models.User.fromURI('spotify:user:@').load('username', 'name').done(function(user) {
-				    // console.log("user: ", user);
-				});
+			// window.theSongs = {
+			// 	'songs': [
+			// 		'spotify:track:6IKNeMqF1V1gmNkiZh1MmZ',
+			// 		'spotify:track:3PJikMV2xGNCooQttQrAw5',
+			// 		'spotify:track:30g7tH1rfMratchnaLfgqJ',
+			// 		'spotify:track:3kZC0ZmFWrEHdUCmUqlvgZ',
+			// 		'spotify:track:5yc59J3MR3tVDPTOgwgRI5',
+			// 		'spotify:track:2bD1AW4yqiCurGCva6r88a',
+			// 		'spotify:track:1x5MjCffpcdHLf65eR9r3T',
+			// 		'spotify:track:5KQrOv9nFVnM465CVGriW9',
+			// 		'spotify:track:5qEn8c0MBzyRKgQq91Vevi',
+			// 		'spotify:track:7Ik1qCkU5NIeBNFzoehjix',
+			// 		'spotify:track:0GO8y8jQk1PkHzS31d699N',
+			// 		'spotify:track:3l8dM1wjgFh98jpiq5ZCe7',
+			// 		'spotify:track:2XbqxKjCnE9YWfPRqwgtPq'
+			// 	]
+			// };
 
 			// window.theSongs = {'songs' : []};
-
 			models.Playlist.createTemporary('webTempPlaylist').done(function(playlist) {
 				window.webTempPlaylist = playlist;
 
@@ -49,6 +44,8 @@ require([
 					playlist.load('tracks').done(function(playlist){
 						playlist.tracks.clear().done(function(){
 							updateLocalPlaylist();
+						}).fail(function(){
+							console.error("Error clearing theQueue tracks");
 						});
 					});
 				}).fail(function(error) {
@@ -140,7 +137,7 @@ require([
 						// console.log('done clearing');
 
 						setTimeout($.proxy(function() {
-							updatePlaylistFromWeb(spotipartyPlaylist);
+							updatePlaylistFromWeb(spotipartyPlaylist, callback);
 						}, this), 10);
 
 
@@ -153,10 +150,8 @@ require([
 
 				}
 				else{
-					updatePlaylistFromWeb(spotipartyPlaylist);
+					updatePlaylistFromWeb(spotipartyPlaylist, callback);
 				}
-
-				callback ? callback() : undefined;
 
 			}).fail(function(error) {
 				console.error(error);
@@ -191,33 +186,61 @@ require([
 		// remove URI from web playlist
 		console.log('removed', track.name, "from web queue");
 
-		window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
+		// window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
+
+		var theUrl = "http://127.0.0.1:1337/party/removeFromPlaylist?user=" + window.theUser.username + "&track="+track.uri
+
+		console.log(theUrl);
+
+		 $.ajax({
+				url: theUrl
+		 }).done(function(result) {
+		 	console.log("removed "+track.name+" from online playlist");
+		 }).error(function(theError){
+		 	console.error("ajax error", theError);
+		 });
 
 		window.songAdded = false;
 	}
 
-	function updatePlaylistFromWeb(localPlaylist) {
+	function updatePlaylistFromWeb(localPlaylist, callback) {
 		// AJAX call would go here...
+		models.User.fromURI('spotify:user:@').load('username', 'name').done(function(user) {
+			window.theUser = user;
+		    $.ajax({
+		   		url: "http://127.0.0.1:1337/party/getParty?user=" + window.theUser.username
+		    }).done(function(result) {
+				console.log("result", result);
 
-		// var window.theSongs = {'songs':[]};
+				if(result[0].playlist.length > 0){
+					var theSongs = Array();
 
-		if (window.theSongs.songs.length > 0) {
+					$.each(result[0].playlist, function(index, playlistItem){
+						theSongs.push(playlistItem.songId);
+						// console.log(playlistItem.songId);
+						// console.log(playlistItem.user.name);
+					});
 
-			if(!window.songAdded && !window.firstTime){
-				addNextSongToQueue(models.Track.fromURI(window.theSongs.songs[0]));
-			}
-			else if(window.firstTime){
-				window.firstTime = false;
-			}
+					if(!window.songAdded && !window.firstTime){
+						addNextSongToQueue(models.Track.fromURI(theSongs[0]));
+					}
+					else if(window.firstTime){
+						window.firstTime = false;
+						console.log("skipping adding the song");
+					}
 
-			localPlaylist.tracks.add(models.Track.fromURIs(window.theSongs.songs)).done(function(stuffs){
-				// added all songs to display
-				updatePlaylistList('#playlistContainer', window.webTempPlaylist);
+					localPlaylist.tracks.add(models.Track.fromURIs(theSongs)).done(function(stuffs){
+						// added all songs to display
+						updatePlaylistList('#playlistContainer', window.webTempPlaylist);
+						callback ? callback() : undefined;
+					});
+
+				} else {
+					console.log('No songs in the queue');
+					grabFromBackupPlaylist();
+				}
 			});
-		} else {
-			console.log('No songs in the queue');
-			grabFromBackupPlaylist();
-		}
+		});
 	}
 
 	function grabFromBackupPlaylist(){
@@ -322,6 +345,7 @@ require([
 	};
 	function addSwipeWatcher(){
 		//Enable swiping...
+		console.log('watching for swipe...');
 		$("body").swipe( {
 			//Generic swipe handler for all directions
 			swipe:function(event, direction, distance, duration, fingerCount) {
@@ -331,9 +355,9 @@ require([
 				}
 				if(direction == "right"){
 					console.log('swipe next');
-					models.player.skipToNextTrack();
 
-					updateLocalPlaylist();
+
+					updateLocalPlaylist(function(){models.player.skipToNextTrack()});
 				}
 			},
 			//Default is 75px, set to 50
