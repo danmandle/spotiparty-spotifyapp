@@ -304,7 +304,9 @@ require([
 	    });
 	}
 
-
+	if(localStorage.partyName != undefined){
+	   $('#partyNameTop').text("Spotiparty - " + localStorage.partyName);
+	}
 
 	var imageURI = null;
 
@@ -490,10 +492,210 @@ var started = false;
 		return 'spotify' + url.replace('http://open.spotify.com', '').replace(/\//gi, ':');
 	}
 
-if(localStorage.partyName != undefined){
-   $('#partyNameTop').text("Spotiparty - " + localStorage.partyName);
-}
+// Head tracking
+	$('#connectPlantronics').click(function(){
 
+		cal();
+		connectToHeadset();
+
+	});
+	  	var ws;
+	  	var heading;
+	  	var pitch;
+	  	var roll;
+	  	var lastHeading;
+
+	  	var COMMAND_CAL_HEADSET = {
+		    type:"command",
+		    id:"cal"};
+
+        var MESSAGE_MOTION_TRACKING = {
+            type:"MOTION_TRACKING_SVC",
+            id: "heading"};
+
+
+       function processMessage(msg) {
+		//Process message from context server. If relevant to RTC server, call applicable methods.
+			var messageType = msg.type;
+			if (MESSAGE_MOTION_TRACKING.type == messageType) {
+				var coordinates = msg.payload.orientation;
+				if(coordinates){
+					var c = coordinates.split(",");
+					if(c){
+						heading = parseInt(c[0]);
+
+						if (heading < 0) {
+						    heading = 360 + heading;
+						}
+						heading = - (heading - 360);
+						// heading = (c[0] > 0) ? parseInt(c[0]) + 180 : Math.abs(c[0]);
+						pitch = c[1];
+						roll = c[2];
+					}
+				}
+				throttled(parseInt(heading));
+	        }
+		}
+
+	  	function connectToHeadset(onOpenFcn){
+		//todo make this dyamic to adjust to SSL
+			var uri = 'ws://localhost:8888';
+			ws = new WebSocket(uri);
+			ws.onopen = function (evt) {
+			    console.log("connected to Plantronics headset service");
+
+			};
+			ws.onclose = function (evt) {
+			    console.log("Plantronics headset service connection closed");
+			};
+			ws.onmessage = function (evt) {
+
+			    var pltMessage = JSON.parse(evt.data);
+			    processMessage(pltMessage)
+
+			};
+			ws.onerror = function (evt) {
+			    console.error("error connecting to headset service");
+			    plantronicsSocket = null;
+			};
+		}
+
+		function cal(){
+			  if(ws == null){
+			  	  return;
+			  }
+			  ws.send(JSON.stringify(COMMAND_CAL_HEADSET));
+		}
+
+		function writeToConsole(message) {
+			var tn = document.createTextNode(message)
+			document.getElementById("console").appendChild(tn);
+	    	}
+
+	    	function doClear() {
+	    		document.getElementById("console").innerHTML = '';
+	    	}
+
+	var throttle = function(func, wait, options) {
+	   var context, args, result;
+	   var timeout = null;
+	   var previous = 0;
+	   options || (options = {});
+	   var later = function() {
+	     previous = options.leading === false ? 0 : new Date;
+	     timeout = null;
+	     result = func.apply(context, args);
+	   };
+	   return function() {
+	     var now = new Date;
+	     if (!previous && options.leading === false) previous = now;
+	     var remaining = wait - (now - previous);
+	     context = this;
+	     args = arguments;
+	     if (remaining <= 0) {
+	       clearTimeout(timeout);
+	       timeout = null;
+	       previous = now;
+	       result = func.apply(context, args);
+	     } else if (!timeout && options.trailing !== false) {
+	       timeout = setTimeout(later, remaining);
+	     }
+	     return result;
+	   };
+	 };
+
+	var throttled = throttle(watchHeadMovement, 100);
+
+	var headTracking = {};
+
+	function plantronicsLog(message){
+		console.log(message);
+	}
+
+	// still need to think about what happens during the turn if you pass 360 > 0
+
+	function watchHeadMovement(currentHeading){
+
+		if(new Date().getTime() < headTracking.startedNoAt + 3000 || !headTracking.startedNoAt){
+
+			if(currentHeading > headTracking.lastHeading && !headTracking.secondTurn && headTracking.lastHeading
+				!= null){
+				//right turn started or happening
+				// headTracking.firstTurnStartedAt ? null : lastHeading;
+
+				// if((currentHeading - headTracking.firstTurnStartedAt) > 60){
+				// 	// head turned right more than 60 degrees
+				// 	headTracking.firstTurn = true;
+				// }
+
+				if(!headTracking.targetHeading){
+					headTracking.targetHeading = (headTracking.lastHeading + 60 < 360) ? headTracking.lastHeading+60 : headTracking.lastHeading-300;
+
+					// console.log(typeof headTracking.targetHeading, headTracking.targetHeading);
+
+					// console.log((headTracking.lastHeading + 60 < 360) ? headTracking.lastHeading+60 : headTracking-300);
+
+					headTracking.startedNoAt = new Date().getTime();
+				}
+				else if(currentHeading > headTracking.targetHeading){
+					//first turn complete
+					plantronicsLog("first turn complete");
+					headTracking.firstTurn = true;
+					headTracking.targetHeading = null;
+				}
+			}
+			else if(currentHeading < headTracking.lastHeading && !headTracking.firstTurn){
+				// if you don't make a full 60 degrees
+				headTracking.targetHeading = null;
+			}
+
+			//start second turn
+			//// headTracking.targetHeading = (headTracking.lastHeading - 60 > 0) ? headTracking.lastHeading-60 ? headTracking+300;
+			else if(currentHeading < headTracking.lastHeading && headTracking.firstTurn && !headTracking.secondTurn){
+				if(!headTracking.targetHeading){
+					headTracking.targetHeading = (headTracking.lastHeading - 60 > 0) ? headTracking.lastHeading-60 : headTracking+300;
+				}
+				else if(currentHeading < headTracking.targetHeading){
+					plantronicsLog("second turn complete");
+					headTracking.secondTurn = true;
+					headTracking.targetHeading = null;
+				}
+			}
+
+			//third turn
+			else if(currentHeading > headTracking.lastHeading && headTracking.secondTurn){
+				if(!headTracking.targetHeading){
+					headTracking.targetHeading = (headTracking.lastHeading + 120 < 60) ? headTracking.lastHeading+60 : headTracking.lastHeading-300;
+					console.log('setting third target', headTracking.targetHeading);
+				}
+				else if(currentHeading > headTracking.targetHeading){
+					// third turn successful
+					console.debug("Shake to skip successful!!!");
+					headTracking.startedNoAt = 1; // expire the time to reset
+					updateLocalPlaylist(function(){models.player.skipToNextTrack()});
+				}
+			}
+			else{
+				//plantronicsLog("Didn't rotate enough, starting over");
+				headTracking.firstTurn = null;
+				headTracking.secondTurn = null;
+				headTracking.startedNoAt = null;
+				headTracking.targetHeading = null;
+			}
+
+			headTracking.lastHeading = currentHeading;
+
+		}
+		else{
+			// ran out of time
+			plantronicsLog("Ran out of time");
+			headTracking.firstTurn = null;
+			headTracking.secondTurn = null;
+			headTracking.startedNoAt = null;
+			headTracking.targetHeading = null;
+		}
+
+	}
 
 
 init();

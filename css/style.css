@@ -29,8 +29,8 @@ body {
 	border-radius: 6px;
 	border: solid 1px #cccacb;
 }
-#map { 
-height: 400px; 
+#map {
+height: 400px;
 width: 530px;
 float: right;
 border-radius: 4px;
@@ -124,7 +124,10 @@ font-size: 12px;
 .clear {
 	clear: both;
 }
-#startTheParty {
+#startTheParty{
+	float: right;
+}
+#connectPlantronics{
 	float: right;
 }
 .extra-margin {
