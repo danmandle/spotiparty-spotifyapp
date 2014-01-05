@@ -23,7 +23,7 @@ require(['$api/models', '$api/location'], function(models, location) {
     localStorage.partyName = name;
 
     $.ajax({
-		url: 'http://127.0.0.1:1337/party',
+		url: 'http://spotiparty.co/party',
 		type: 'POST',
 		crossDomain: true,
 		data: {

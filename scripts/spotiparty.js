@@ -197,7 +197,7 @@ require([
 
 		// window.theSongs.songs.splice($.inArray(track.uri, window.theSongs.songs),1);
 
-		var theUrl = "http://127.0.0.1:1337/party/removeFromPlaylist?user=" + window.theUser.username + "&track="+track.uri
+		var theUrl = "http://spotiparty.co/party/removeFromPlaylist?user=" + window.theUser.username + "&track="+track.uri
 
 		console.log(theUrl);
 
@@ -217,7 +217,7 @@ require([
 		models.User.fromURI('spotify:user:@').load('username', 'name').done(function(user) {
 			window.theUser = user;
 		    $.ajax({
-		   		url: "http://127.0.0.1:1337/party/getParty?user=" + window.theUser.username
+		   		url: "http://spotiparty.co/party/getParty?user=" + window.theUser.username
 		    }).done(function(result) {
 				console.log("result", result);
 
