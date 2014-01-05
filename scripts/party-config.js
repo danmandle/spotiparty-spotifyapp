@@ -1,5 +1,5 @@
 require(['$api/models', '$api/location'], function(models, location) {
-  // window.socket = io.connect('http://127.0.0.1:1337');
+  // window.socket = io.connect('http://spotiparty.co');
   // socket.on('connect', function() {
   //   alert('connect')
   // });

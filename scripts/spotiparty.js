@@ -252,6 +252,33 @@ require([
 		});
 	}
 
+	function refreshPlaylist(localPlaylist) {
+		models.User.fromURI('spotify:user:@').load('username', 'name').done(function(user) {
+			window.theUser = user;
+		    $.ajax({
+		   		url: "http://spotiparty.co/party/getParty?user=" + window.theUser.username
+		    }).done(function(result) {
+				console.log("result", result);
+
+				if(result[0].playlist.length > 0){
+					var theSongs = Array();
+
+					$.each(result[0].playlist, function(index, playlistItem){
+						theSongs.push(playlistItem.songId);
+						// console.log(playlistItem.songId);
+						// console.log(playlistItem.user.name);
+					});
+
+					localPlaylist.tracks.add(models.Track.fromURIs(theSongs)).done(function(stuffs){
+						// added all songs to display
+						updatePlaylistList('#playlistContainer', window.webTempPlaylist);
+					});
+
+				}
+			});
+		});
+	}
+
 	function grabFromBackupPlaylist(){
 		if(localStorage.backupPlaylist){
 			models.Playlist.fromURI(localStorage.backupPlaylist).load('name','uri','tracks').done(function(playlist) {
@@ -375,6 +402,7 @@ require([
 	}
 
 // Player Functions
+var started = false;
 	$('#startTheParty').click(function(){
 		console.log('Let the party begin');
 		updateLocalPlaylist(function(){
@@ -383,7 +411,14 @@ require([
 			});
 		});
 
+		started = true;
 	});
+
+	setInterval(function() {
+		window.theQueue.load("tracks").done(function(spotipartyPlaylist) {
+			if(started) refreshPlaylist(spotipartyPlaylist);
+		});
+	}, 5000);
 
 	function trackChanged(e){
 		console.log('track changed');
