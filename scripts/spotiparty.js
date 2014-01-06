@@ -493,6 +493,10 @@ var started = false;
 	}
 
 // Head tracking
+
+	$('#startTheParty').click(function(){
+		cal();
+	});
 	$('#connectPlantronics').click(function(){
 
 		cal();
